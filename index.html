@@ -23,6 +23,10 @@
         }
     </style>
     <script>
+        /**
+         * Navigate to the section specified in the button's value by hiding all other sections and showing the one specified
+         * @param {Event} event - The event object
+         */
         function navigate(event) {
             if (event.target.tagName !== "BUTTON") {
                 return;
