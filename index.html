@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VC5</title>
+    <meta name="description" content="A simple editor for CVs">
+    <style>
+        button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: white;
+
+            color: black;
+        }
+    </style>
+    <script>
+        function navigate(event) {
+            if (event.target.tagName !== "BUTTON") {
+                return;
+            }
+            const navigation = event.target.closest("nav");
+            const container = document.querySelector(navigation.dataset.container);
+
+            if (!container) {
+                throw new Error("Container not found");
+            }
+     
+            const sections = Array.from(container.children).filter(child => child.tagName === "SECTION");
+
+            sections.forEach(section => {
+                if (section.id === event.target.value) {
+                    section.removeAttribute("hidden");
+                } else {
+                    section.setAttribute("hidden", true);
+                }
+            });
+        }
+    </script>
+</head>
+
+<body style="background-color: black; color: white; font-family: system-ui, sans-serif;">
+    <main>
+        <nav id="navigationMain" data-container="main">
+            <button value="editor">Editor</button>
+            <button value="preview">Preview</button>
+            <button value="settings">Settings</button>
+        </nav>
+        <script>
+            window.navigationMain.addEventListener("click", navigate);
+        </script>
+
+        <section id="editor">
+            <h1>
+                Editor
+            </h1>
+            <nav id="navigationEditor">
+                <button value="cvs">CVS</button>
+                <button value="facts">Facts</button>
+                <button value="style">Style</button>
+            </nav>
+            <script>
+                window.navigationEditor.addEventListener("click", (e) => {
+                    if (e.target.tagName !== "BUTTON") {
+                        return;
+                    }
+                    const sections = ["cvs", "facts", "style"];
+                    sections.forEach(section => {
+                        if (section === e.target.value) {
+                            document.getElementById(section).removeAttribute("hidden");
+                        } else {
+                            document.getElementById(section).setAttribute("hidden", true);
+                        }
+                    });
+
+                });
+            </script>
+            <section id="cvs">
+                <h2>CVS</h2>
+                <button type="button">Add CV</button>
+                <div id="cvsList"></div>
+            </section>
+            <section id="facts" hidden>
+                <h2>Facts</h2>
+                <nav id="navigationFacts">
+                    <button value="personal">Personal</button>
+                    <button value="professional">Professional</button>
+                    <button value="education">Education</button>
+                    <button value="skills">Skills</button>
+                    <button value="projects">Projects</button>
+                    <button value="publications">Publications</button>
+                    <button value="awards">Awards</button>
+                    <button value="references">References</button>
+                </nav>
+                <script>
+                    window.navigationFacts.addEventListener("click", (e) => {
+                        if (e.target.tagName !== "BUTTON") {
+                            return;
+                        }
+                        const sections = ["personal", "professional", "education", "skills", "projects", "publications", "awards", "references"];
+                        sections.forEach(section => {
+                            if (section === e.target.value) {
+                                document.getElementById(section).removeAttribute("hidden");
+                            } else {
+                                document.getElementById(section).setAttribute("hidden", true);
+                            }
+
+                        });
+                    });
+                </script>
+                <section id="personal">
+                    <h3>Personal</h3>
+                </section>
+                <section id="professional" hidden>
+                    <h3>Professional</h3>
+                </section>
+                <section id="education" hidden>
+                    <h3>Education</h3>
+                </section>
+                <section id="skills" hidden>
+                    <h3>Skills</h3>
+                </section>
+                <section id="projects" hidden>
+                    <h3>Projects</h3>
+                </section>
+                <section id="publications" hidden>
+                    <h3>Publications</h3>
+                </section>
+                <section id="awards" hidden>
+                    <h3>Awards</h3>
+                </section>
+            </section>
+
+            <section id="style" hidden>
+                <h2>Style</h2>
+            </section>
+
+        </section>
+        <section id="preview" hidden>
+            <h1>
+                Preview
+            </h1>
+
+        </section>
+        <section id="settings" hidden>
+            <h1>
+                Settings
+            </h1>
+            <section>
+                <h2>Sections</h2>
+            </section>
+            <section>
+                <h1>Import/Export</h1>
+                <button value="import">Import</button>
+                <button value="export">Export</button>
+            </section>
+
+        </section>
+    </main>
+</body>
+
+</html>
