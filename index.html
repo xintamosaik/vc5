@@ -12,6 +12,23 @@
       grid-template-columns: 1fr 1fr;
       gap: 8ch;
     }
+    .mobile {
+      display: none;
+    }
+    .desktop {
+      display: block;
+    }
+    @media (max-width: 600px) {
+      body {
+        grid-template-columns: 1fr;
+      }
+      .mobile {
+        display: block;
+      }
+      .desktop {
+        display: none;
+      }
+    }
 
     button {
       background-color: #333;
@@ -68,7 +85,7 @@
   <main>
     <nav id="navigationMain" data-container="main" onclick="navigate(event)">
       <button value="editor">Editor</button>
-      <button value="preview">Preview</button>
+      <button value="preview" class="mobile">Preview</button>
       <button value="settings">Settings</button>
     </nav>
 
@@ -257,7 +274,7 @@
       "#navigationFacts button[value='work']"
     );
     summaryButton.click();
-  </script>
+    </script>
 </body>
 
 </html>
