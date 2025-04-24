@@ -33,7 +33,7 @@
             if (!container) {
                 throw new Error("Container not found");
             }
-     
+
             const sections = Array.from(container.children).filter(child => child.tagName === "SECTION");
 
             sections.forEach(section => {
@@ -49,40 +49,22 @@
 
 <body style="background-color: black; color: white; font-family: system-ui, sans-serif;">
     <main>
-        <nav id="navigationMain" data-container="main">
+        <nav id="navigationMain" data-container="main" onclick="navigate(event)">
             <button value="editor">Editor</button>
             <button value="preview">Preview</button>
             <button value="settings">Settings</button>
         </nav>
-        <script>
-            window.navigationMain.addEventListener("click", navigate);
-        </script>
 
         <section id="editor">
             <h1>
                 Editor
             </h1>
-            <nav id="navigationEditor">
+            <nav id="navigationEditor" data-container="#editor" onclick="navigate(event)">
                 <button value="cvs">CVS</button>
                 <button value="facts">Facts</button>
                 <button value="style">Style</button>
             </nav>
-            <script>
-                window.navigationEditor.addEventListener("click", (e) => {
-                    if (e.target.tagName !== "BUTTON") {
-                        return;
-                    }
-                    const sections = ["cvs", "facts", "style"];
-                    sections.forEach(section => {
-                        if (section === e.target.value) {
-                            document.getElementById(section).removeAttribute("hidden");
-                        } else {
-                            document.getElementById(section).setAttribute("hidden", true);
-                        }
-                    });
 
-                });
-            </script>
             <section id="cvs">
                 <h2>CVS</h2>
                 <button type="button">Add CV</button>
@@ -90,7 +72,7 @@
             </section>
             <section id="facts" hidden>
                 <h2>Facts</h2>
-                <nav id="navigationFacts">
+                <nav id="navigationFacts" data-container="#facts" onclick="navigate(event)">
                     <button value="personal">Personal</button>
                     <button value="professional">Professional</button>
                     <button value="education">Education</button>
@@ -100,22 +82,7 @@
                     <button value="awards">Awards</button>
                     <button value="references">References</button>
                 </nav>
-                <script>
-                    window.navigationFacts.addEventListener("click", (e) => {
-                        if (e.target.tagName !== "BUTTON") {
-                            return;
-                        }
-                        const sections = ["personal", "professional", "education", "skills", "projects", "publications", "awards", "references"];
-                        sections.forEach(section => {
-                            if (section === e.target.value) {
-                                document.getElementById(section).removeAttribute("hidden");
-                            } else {
-                                document.getElementById(section).setAttribute("hidden", true);
-                            }
 
-                        });
-                    });
-                </script>
                 <section id="personal">
                     <h3>Personal</h3>
                 </section>
