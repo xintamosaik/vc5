@@ -1,280 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background-color: black; color: white;">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VC5</title>
+    <meta name="description" content="A simple editor for CVs" />
+    <style>
+      body > nav {
+        padding: 1rem;
+        display:flex; 
+        flex-direction: column;
+        gap: 1rem;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VC5</title>
-  <meta name="description" content="A simple editor for CVs" />
-  <style>
-    body {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8ch;
-    }
-    .mobile {
-      display: none;
-    }
-    .desktop {
-      display: block;
-    }
-    @media (max-width: 600px) {
-      body {
-        grid-template-columns: 1fr;
+      main {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
       }
-      .mobile {
-        display: block;
-      }
-      .desktop {
+
+      #preview {
         display: none;
       }
-    }
 
-    button {
-      background-color: #333;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: white;
-
-      color: black;
-    }
-  </style>
-  <script>
-    /**
-     * Navigate to the section specified in the button's value by hiding all other sections and showing the one specified
-     * @param {Event} event - The event object
-     */
-    function navigate(event) {
-      if (event.target.tagName !== "BUTTON") {
-        return;
-      }
-      const navigation = event.target.closest("nav");
-      const container = document.querySelector(navigation.dataset.container);
-
-      if (!container) {
-        throw new Error("Container not found");
-      }
-
-      const sections = Array.from(container.children).filter(
-        (child) => child.tagName === "SECTION"
-      );
-
-      sections.forEach((section) => {
-        if (section.id === event.target.value) {
-          section.removeAttribute("hidden");
-        } else {
-          section.setAttribute("hidden", true);
+      @media (min-width: 600px) {
+        body > nav {
+          flex-direction: row;
         }
-      });
-    }
-  </script>
-</head>
+      }
 
-<body style="
-      margin: 0;
-      background-color: black;
-      color: white;
-      font-family: system-ui, sans-serif;
-    ">
-  <main>
-    <nav id="navigationMain" data-container="main" onclick="navigate(event)">
-      <button value="editor">Editor</button>
-      <button value="preview" class="mobile">Preview</button>
-      <button value="settings">Settings</button>
+      @media (min-width: 1200px) {
+        main {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+          
+        }
+        #preview{
+          display: flex;
+          flex-direction: row;
+        }
+        #editor{
+          display: flex;
+          flex-direction: row;
+        }
+        .mobile{
+          display: none;
+        }
+      }
+    </style>
+    <style>
+      button {
+
+        border: 1px solid white;
+        background-color: black;
+        color: white;
+        padding: 2rem;
+        box-shadow: 0.5ch 0.5ch 0 white;
+      }
+    </style>
+  </head>
+
+  <body style="margin:0; border: 1px solid hotpink;">
+    <nav>
+      <button class="mobile">Preview</button>
+      <button>CVs</button>
+      <button>Facts</button>
+      <button>Styles</button>
+      <button>Settings</button>
     </nav>
-
-    <section id="editor">
-      <h1>Editor</h1>
-      <nav id="navigationEditor" data-container="#editor" onclick="navigate(event)">
-        <button value="cvs">CVS</button>
-        <button value="facts">Facts</button>
-        <button value="style">Style</button>
-      </nav>
-
-      <section id="cvs">
-        <h2>CVS</h2>
-        <button type="button">Add CV</button>
-        <div id="cvsList"></div>
+    <main>
+      <section id="editor" style="border: 1px solid teal;">
+        
       </section>
-      <section id="facts" hidden>
-        <h2>Facts</h2>
-        <nav id="navigationFacts" data-container="#facts" onclick="navigate(event)">
-          <button value="personal">Personal</button>
-          <button value="summary">Summary</button>
-          <button value="work">Work Experience</button>
-          <button value="education">Education</button>
-          <button value="skills">Skills</button>
-          <button value="projects">Projects</button>
-          <button value="publications">Publications</button>
-          <button value="awards">Awards</button>
-          <button value="references">References</button>
-        </nav>
-
-        <section id="personal">
-          <h3>Personal</h3>
-        </section>
-        <section id="summary" hidden>
-          <h3>Summary</h3>
-          <form id="summaryForm">
-            <label for="summary">Summary</label><br />
-            <textarea id="summary" name="summary" rows="4" cols="50"
-              placeholder="Write a brief summary..."></textarea><br />
-            <label for="title">Title</label><br />
-            <input type="text" name="title" id="title" /><br />
-            <button type="submit">Save</button>
-          </form>
-          <script>
-            document.forms.summaryForm.addEventListener("submit", (event) => {
-              event.preventDefault();
-
-              localStorage.setItem("summary", event.target.summary.value);
-            });
-
-            // Load the summary from local storage
-            const savedSummary = localStorage.getItem("summary");
-            if (savedSummary) {
-              document.forms.summaryForm.summary.value = savedSummary;
-            }
-          </script>
-        </section>
-        <section id="work">
-          <h3>Work Experience</h3>
-          <button type="button" popovertarget="workExperienceForm">
-            Add Work Experience
-          </button>
-
-          <form popover="manual" id="workExperienceForm" style="
-                padding: 4ch;
-                background-color: #333;
-                color: white;
-                border-radius: 5px;
-              ">
-            <label for="company">Company</label><br />
-            <input type="text" name="company" id="company" required /><br />
-            <label for="position">Position</label><br />
-            <input type="text" name="position" id="position" required /><br />
-            <label for="startDate">Start Date</label><br />
-            <input type="date" name="startDate" id="start" required /><br />
-            <label for="endDate">End Date</label><br />
-            <input type="date" name="endDate" id="end" /><br />
-            <button type="submit">Save</button>
-          </form>
-          <script>
-            document.forms.workExperienceForm.addEventListener(
-              "submit",
-              (event) => {
-                event.preventDefault();
-                const workExperience = {
-                  company: event.target.company.value,
-                  position: event.target.position.value,
-                  startDate: event.target.startDate.value,
-                  endDate: event.target.endDate.value,
-                };
-
-                const timestamp = new Date().getTime();
-                localStorage.setItem(
-                  "work" + timestamp,
-                  JSON.stringify(workExperience)
-                );
-
-                document.forms.workExperienceForm.hidePopover();
-              }
-            );
-          </script>
-          <template id="workExperience">
-            <div>
-              <h4 class="company"></h4>
-              <p class="title"></p>
-              <p class="dates"></p>
-              <p class="updated"></p>
-              <button type="button" class="delete">Delete</button>
-              <button type="button" class="edit">Edit</button>
-
-            </div>
-
-          </template>
-          <div id="workExperienceList"></div>
-          <script>
-            // Load work experience from local storage
-            const workExperienceList = document.getElementById(
-              "workExperienceList"
-            );
-            const workExperienceTemplate = document.getElementById(
-              "workExperience"
-            );
-
-            for (let i = 0; i < localStorage.length; i++) {
-              const key = localStorage.key(i);
-              if (key.startsWith("work")) {
-                const workExperience = JSON.parse(localStorage.getItem(key));
-                const clone = workExperienceTemplate.content.cloneNode(true);
-                clone.querySelector("h4").textContent =
-                  workExperience.company;
-                clone.querySelector("p:nth-of-type(1)").textContent =
-                  workExperience.position;
-                clone.querySelector("p:nth-of-type(2)").textContent =
-                  workExperience.startDate + " - " + workExperience.endDate;
-                workExperienceList.appendChild(clone);
-              }
-            }
-          </script>
-        </section>
-        <section id="education" hidden>
-          <h3>Education</h3>
-        </section>
-        <section id="skills" hidden>
-          <h3>Skills</h3>
-        </section>
-        <section id="projects" hidden>
-          <h3>Projects</h3>
-        </section>
-        <section id="publications" hidden>
-          <h3>Publications</h3>
-        </section>
-        <section id="awards" hidden>
-          <h3>Awards</h3>
-        </section>
+      <section id="preview" style="border: 1px solid yellow;">
+   
       </section>
+    </main>
+    
 
-      <section id="style" hidden>
-        <h2>Style</h2>
-      </section>
-    </section>
-
-    <section id="settings" hidden>
-      <h1>Settings</h1>
-      <section>
-        <h2>Sections</h2>
-      </section>
-      <section>
-        <h1>Import/Export</h1>
-        <button value="import">Import</button>
-        <button value="export">Export</button>
-      </section>
-    </section>
-  </main>
-  <section id="preview">
-    <h1>Preview</h1>
-  </section>
-  <script>
-    // click the facts button
-    const factsButton = document.querySelector(
-      "#navigationEditor button[value='facts']"
-    );
-
-    factsButton.click();
-    // click the summary button
-    const summaryButton = document.querySelector(
-      "#navigationFacts button[value='work']"
-    );
-    summaryButton.click();
-    </script>
-</body>
+   
+  </body>
 
 </html>
