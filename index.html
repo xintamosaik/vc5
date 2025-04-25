@@ -6,55 +6,28 @@
     <title>VC5</title>
     <meta name="description" content="A simple editor for CVs" />
     <style>
-      nav.waiting,
-      nav.always {
-        display: flex;
-      }
 
       nav {
-        display: none;
-        flex-direction: column;
+        display: flex;
+        flex-direction: row;
         gap: 1rem;
       }
 
       main {
         padding: 1rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+
+      #preview,
+      #editor{
         display: flex;
         flex-direction: column;
       }
 
-      #preview.active,
-      #editor.active {
-        display: flex;
-      }
-
-      #editor,
-      #preview {
-        display: none;
-        flex-direction: column;
-      }
-
-      @media (min-width: 600px) {
-        nav {
-          display: flex;
-          flex-direction: row;
-        }
-      }
-
-      @media (min-width: 1200px) {
-        main {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-        }
-        #preview,
-        #editor {
-          display: flex;
-        }
-        .mobile {
-          display: none;
-        }
-      }
+  
+ 
     </style>
     <style>
       button {
@@ -68,21 +41,11 @@
   </head>
 
   <body style="margin: 0; border: 1px solid hotpink" class="editor">
-    <script>
-      function togglePreview() {
-        window.editor.classList.toggle("active");
-        window.preview.classList.toggle("active");
-      }
-    </script>
-    <button class="mobile" onclick="togglePreview()" style="margin: 1rem">
-      Preview
-    </button>
+
 
     <main>
       <script>
-        function toggleSection(active) {
-          
-        }
+  
         function handleMenuClick(event) {
           const target = event.target;
 
@@ -117,7 +80,7 @@
             console.log(subSection);
             if (subSection.id === active) {
               subSection.removeAttribute("hidden");
-              navigation.classList.remove("waiting");
+ 
             } else {
               subSection.setAttribute("hidden", true);
             }
@@ -138,10 +101,8 @@
         </nav>
 
         <div id="cvs" class="editor" hidden>
-          <nav class="always" data-section="cvs">
-            <button value="menu">Back</button>
-          </nav>
-          
+      
+
           <h1>CVs</h1>
         </div>
         <div id="facts" class="editor" hidden>
