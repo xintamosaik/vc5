@@ -272,14 +272,17 @@
                 const skills = getLocal("skills");
                 const skill = skills.find((skill) => skill.name === name);
                 if (!skill) return;
+
                 const skillDialog = document.getElementById("new-skill");
                 skillDialog.showModal();
+
                 const nameInput = skillDialog.querySelector("#name");
-                const levelInput = skillDialog.querySelector("#level");
-                const categoryInput = skillDialog.querySelector("#category");
                 nameInput.value = skill.name;
-                levelInput.value = skill.level;
-                categoryInput.value = skill.category;
+                const levelInput = skillDialog.querySelector("#level");
+                levelInput.value = skill.level || "";
+
+                const categoryInput = skillDialog.querySelector("#category");
+                categoryInput.value = skill.category || "";
               }
               function deleteSkill(name) {
                 console.log({ name });
@@ -305,20 +308,14 @@
                   <div style="display: flex; gap: 1rem; justify-content: space-between; align-items: center">
                     <h2>
                       <span>${skill.name}</span>
-                      <span>(${skill.level})</span>
+                      <span>${skill.level}</span>
                       <span>${skill.category}</span>
                     </h2>
                     <div>
-                    <button
-                      onclick="deleteSkill('${skill.name}')"
-                    
-                    >
+                    <button onclick="deleteSkill('${skill.name}')">
                       Delete
                     </button>
-                    <button
-                      onclick="editSkill('${skill.name}')"
-                    
-                    >
+                    <button onclick="editSkill('${skill.name}')">
                       Edit
                     </button>
                     </div>
