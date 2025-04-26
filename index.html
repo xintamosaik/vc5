@@ -44,6 +44,11 @@
         box-shadow: 0.5ch 0.5ch 0 white;
       }
 
+      button:hover {
+        background-color: #333;
+        cursor: pointer;
+      }
+
       input {
         outline: none;
         border: none;
@@ -76,6 +81,7 @@
         style.innerHTML = `
           #${sectionName} > #${active} { display: flex; flex-direction: column; }
           button[value="${active}"] { box-shadow: none; margin-top: 0.5ch; margin-left: 0.5ch; border-color: yellow;}
+          button[value="${active}"]:hover { background-color: black; cursor: default; }
         `;
       }
     </script>
