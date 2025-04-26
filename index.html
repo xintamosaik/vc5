@@ -6,11 +6,11 @@
     <title>VC5</title>
     <meta name="description" content="A simple editor for CVs" />
     <style>
-
       nav {
         display: flex;
         flex-direction: row;
         gap: 1rem;
+        align-items: flex-start;
       }
 
       main {
@@ -21,99 +21,85 @@
       }
 
       #preview,
-      #editor{
+      #editor {
         display: flex;
         flex-direction: column;
+        gap: 1rem;
       }
-
-  
- 
     </style>
     <style>
       button {
         border: 1px solid white;
         background-color: black;
         color: white;
-        padding: 2rem;
+        padding: 1rem 2rem;
         box-shadow: 0.5ch 0.5ch 0 white;
       }
     </style>
   </head>
 
   <body style="margin: 0; border: 1px solid hotpink" class="editor">
-
-
     <main>
       <script>
-  
         function handleMenuClick(event) {
           const target = event.target;
+          if (target.tagName !== "BUTTON") return;
 
-          if (target.tagName !== "BUTTON") {
-            return;
-          }
+          const navigation = target.closest("nav");
+          if (!navigation) return;
 
-          const navigation = event.target.closest("nav");
-          if (!navigation) {
-            return;
-          }
           const sectionName = navigation.dataset.section;
-          if (!sectionName) {
-            return;
-          }
-          console.log(sectionName);
-          const active = event.target.value;
-          console.log(active);
+          if (!sectionName) return;
 
-          const section = document.getElementById(sectionName);
-          if (!section) {
-            return;
-          }
-          console.log(section);
+          const active = target.value;
+          if (!active) return;
 
-          const subSections = section.querySelectorAll("." + sectionName);
-          if (!subSections) {
+          const style = document.getElementById(sectionName + "-style");
+          if (!style) {
             return;
           }
-          console.log(subSections);
-          subSections.forEach((subSection) => {
-            console.log(subSection);
-            if (subSection.id === active) {
-              subSection.removeAttribute("hidden");
- 
-            } else {
-              subSection.setAttribute("hidden", true);
-            }
-          });
+          style.innerHTML = `
+            #${sectionName} > #${active} { display: flex; flex-direction: column; }
+            button[value="${active}"] { box-shadow: none; margin-top: 0.5ch; margin-left: 0.5ch; border-color: yellow;}
+          `;
         }
       </script>
       <section id="editor" class="active" style="border: 1px solid teal">
-        <nav
-          id="menu"
-          class="waiting"
-          data-section="editor"
-          onclick="handleMenuClick(event)"
-        >
+        <style id="editor-style">
+          #facts {
+            display: flex;
+            flex-direction: column;
+          }
+        </style>
+
+        <nav data-section="editor" onclick="handleMenuClick(event)">
           <button value="cvs">CVs</button>
           <button value="facts">Facts</button>
           <button value="styles">Styles</button>
           <button value="settings">Settings</button>
         </nav>
 
-        <div id="cvs" class="editor" hidden>
-      
-
-          <h1>CVs</h1>
-        </div>
+        <div id="cvs" class="editor" hidden></div>
         <div id="facts" class="editor" hidden>
-          <h1>Facts</h1>
+          <style id="facts-style"></style>
+
+          <nav data-section="facts" onclick="handleMenuClick(event)">
+            <button value="personal">Personal</button>
+            <button value="contact">Contact</button>
+            <button value="summary">Summary</button>
+            <button value="education">Education</button>
+            <button value="experience">Experience</button>
+            <button value="skills">Skills</button>
+          </nav>
+          <div id="personal" class="facts" hidden></div>
+          <div id="contact" class="facts" hidden></div>
+          <div id="summary" class="facts" hidden></div>
+          <div id="education" class="facts" hidden></div>
+          <div id="experience" class="facts" hidden></div>
+          <div id="skills" class="facts" hidden></div>
         </div>
-        <div id="styles" class="editor" hidden>
-          <h1>Styles</h1>
-        </div>
-        <div id="settings" class="editor" hidden>
-          <h1>Settings</h1>
-        </div>
+        <div id="styles" class="editor" hidden></div>
+        <div id="settings" class="editor" hidden></div>
       </section>
       <section id="preview" style="border: 1px solid yellow"></section>
     </main>

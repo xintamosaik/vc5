@@ -2,7 +2,7 @@ This is an experiment.
 
 "What if we don't use react, tailwind, vite or next? What if we did Vanilla?"
 
-The case is a CV builder. 
+The case is a CV builder. Desktop-only. No mobile.
 
 We will do no backend and use localStorage for data.
 
