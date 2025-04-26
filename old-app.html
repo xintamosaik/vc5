@@ -1,0 +1,3366 @@
+================================================
+FILE: README.md
+================================================
+# Very curriculum
+
+This project is a browser-based resume builder that allows users to create, customize, and preview professional resumes. It uses localStorage for data persistence and provides tools for editing content, customizing styles, and organizing layouts dynamically.
+
+---
+
+## Features
+
+- **Resume Creation**: Users can add and edit sections like personal info, education, jobs, skills, and more.
+- **Style Customization**: Dynamic styling options for fonts, colors, and layouts.
+- **Preview**: Real-time preview of the resume with print-friendly options.
+- **Offline Capability**: Uses localStorage to allow offline use.
+
+---
+
+## MVP Goals
+
+1. Allow users to create a resume with all key sections.
+2. Enable basic customization of styles and layout.
+3. Provide a functional and visually appealing preview.
+4. Ensure ease of navigation between sections.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+To run the project, you need:
+
+- A modern browser (e.g., Chrome, Firefox, Edge).
+- JavaScript enabled.
+
+### Running Locally
+
+1. Clone the repository:
+   ```sh
+   git clonehttps://github.com/xintamosaik/vc
+   ```
+2. Open `index.html` in your browser.
+
+No additional setup is required.
+
+---
+
+## Contributing
+
+We welcome contributions to improve the project. To contribute:
+
+1. Fork the repository.
+2. Create a new branch:
+   ```sh
+   git checkout -b feature/your-feature-name
+   ```
+3. Make your changes and commit:
+   ```sh
+   git commit -m "Add your commit message"
+   ```
+4. Push to your fork and open a pull request.
+
+### Guidelines
+
+- **Code Style**: Defaults in VS Code work, Eslint is welcome. If you can keep your line length under 120 or even 80 you get extra-karma-points fro me.
+- **Testing**: That would be cool.
+- **Documentation**: Update the README or relevant documentation if your changes require it.
+- **Feedback**: Be open to feedback and revisions during code review.
+
+---
+
+## Roadmap
+
+Future enhancements planned include:
+
+- Backend integration for data persistence.
+- Make it easy to work with generative AI to get data in and out.
+- Improved accessibility and user interface.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
+
+## Contact
+
+For questions or suggestions, please open an issue in the repository.
+
+
+
+
+================================================
+FILE: about.txt
+================================================
+This favicon was generated using the following graphics from Twitter Twemoji:
+
+- Graphics Title: 1f643.svg
+- Graphics Author: Copyright 2020 Twitter, Inc and other contributors (https://github.com/twitter/twemoji)
+- Graphics Source: https://github.com/twitter/twemoji/blob/master/assets/svg/1f643.svg
+- Graphics License: CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+
+
+
+================================================
+FILE: index.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/</title>
+    <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+    <main>
+        <h1>/</h1>
+        <hr>
+        <nav class="auto-rows">
+            <a href="cvs/">/cvs</a></h2>               
+            <a href="facts/">/facts</a>
+            <a href="styles/">/styles</a>
+            <a href="about/">/about</a>
+        </nav>
+    </main>
+</body>
+</html>
+
+
+================================================
+FILE: shared.css
+================================================
+:root {
+    --width-content: 500px;
+    --color-primary: hotpink;
+    --color-success: aquamarine;
+    --color-neutral: black;
+    --color-text: black;
+    --color-background: white;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-text: white;
+        --color-background: darkslategrey;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    max-width: var(--width-content);
+    margin: 0 auto;
+    background-color: var(--color-neutral);
+    color: var(--color-text);
+}
+
+main {
+    padding: 20px;
+    background-color: var(--color-background);
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+label {
+    font-family: sans-serif;
+    padding: 0.5em 0;
+}
+
+input,
+textarea,
+button {
+    font-family: monospace;
+    padding: 0.5em;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    outline: none;
+
+}
+
+input {
+    border: 1px solid var(--color-primary);
+}
+
+input:focus {
+    border: 1px solid var(--color-text)
+}
+
+
+
+button {
+    border: none;
+    background-color: var(--color-primary)
+}
+
+div.flash {
+    font-family: monospace;
+    background-color: var(--color-success);
+    position: fixed;
+    width: min(100%, var(--width-content));
+    text-align: center;
+}
+
+a {
+    text-decoration: none;
+    font-family: monospace;
+    color: var(--color-primary);
+}
+
+a:before  {
+    content: "→";
+
+}
+
+a.dead:before {
+    content: "";
+}
+
+nav.auto-rows {
+    display: grid;
+    grid-auto-rows: 2rem;
+}
+
+
+================================================
+FILE: shared.js
+================================================
+function flashSuccessMessage(message) {
+    const div = document.createElement('div')
+    div.classList.add('flash')
+
+    const h1 = document.createElement('h1')
+    div.append(h1)
+
+    const text = document.createTextNode(message.toUpperCase())
+    h1.appendChild(text)
+
+    document.body.prepend(div)
+    setTimeout(() => {
+        div.remove()
+    }, 2000)
+}
+
+/**
+ * This function compares a timestamp to now and gives either seconds, minutes, hours, days, weeks, months or years
+ * @param {number} timestamp - The timestamp to compare to now
+ * 
+ * @returns {string} - The time difference as a approximate string
+ */
+function timeAgo(timestamp) {
+    const now = Date.now()
+    const diff = now - timestamp
+
+    const seconds = Math.floor(diff / 1000)
+    if (seconds < 120) {
+        return `${seconds} seconds ago`
+    }
+
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 120) {
+        return `${minutes} minutes ago`
+    }
+
+    const hours = Math.floor(minutes / 60)
+    if (hours < 48) {
+        return `${hours} hours ago`
+    }
+
+    const days = Math.floor(hours / 24)
+    if (days < 14) {
+        return `${days} days ago`
+    }
+
+    const weeks = Math.floor(days / 7)
+    if (weeks < 8) {
+        return `${weeks} weeks ago`
+    }
+
+    const months = Math.floor(days / 30)
+    if (months < 24) {
+        return `${months} months ago`
+    }
+
+    const years = Math.floor(days / 365)
+    return `${years} years ago`
+}
+
+
+================================================
+FILE: site.webmanifest
+================================================
+{"name":"","short_name":"","icons":[{"src":"/android-chrome-192x192.png","sizes":"192x192","type":"image/png"},{"src":"/android-chrome-512x512.png","sizes":"512x512","type":"image/png"}],"theme_color":"#ffffff","background_color":"#ffffff","display":"standalone"}
+
+
+================================================
+FILE: .nojekyll
+================================================
+
+
+
+================================================
+FILE: cvs/edit.html
+================================================
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>/cvs/edit</title>
+    <link rel="stylesheet" href="../shared.css" />
+    <script src="../shared.js"></script>
+  </head>
+
+  <body>
+    <main>
+      <h1>/cvs/edit</h1>
+      <hr />
+      <form
+        style="display: flex; flex-direction: column"
+        onsubmit="handleSubmit(event)"
+      >
+        <input type="hidden" name="id" id="id" />
+        <nav id="sections" class="auto-rows">
+          <label for="name">Name</label>
+          <input
+            type="text"
+            name="name"
+            id="name"
+            placeholder="Pick a name for your cv"
+          />
+          <br />
+          <div class="section" data-category="personal">
+            <input
+              type="checkbox"
+              id="personal"
+              name="personal"
+              value="personal"
+              checked
+            />
+            <a class="dead" data-section="personal">/cvs/personal</a>
+          </div>
+
+          <div class="section" data-category="summary">
+            <input
+              type="checkbox"
+              id="summary"
+              name="summary"
+              value="summary"
+              checked
+            />
+            <a data-section="summary" href="./summary.html">/cvs/summary</a>
+          </div>
+
+          <div class="section" data-category="educations">
+            <input
+              type="checkbox"
+              id="educations"
+              name="educations"
+              value="educations"
+              checked
+            />
+            <a data-section="educations" href="./education.html"
+              >/cvs/education</a
+            >
+          </div>
+
+          <div class="section" data-category="jobs">
+            <input type="checkbox" id="jobs" name="jobs" value="jobs" checked />
+            <a data-section="jobs" href="./jobs.html">/cvs/jobs</a>
+          </div>
+
+          <div class="section" data-category="skills">
+            <input
+              type="checkbox"
+              id="skills"
+              name="skills"
+              value="skills"
+              checked
+            />
+            <a data-section="skills">/cvs/skills</a>
+          </div>
+
+          <div class="section" data-category="interests">
+            <input
+              type="checkbox"
+              id="interests"
+              name="interests"
+              value="interests"
+              checked
+            />
+            <a class="dead" data-section="interests">/cvs/interests</a>
+          </div>
+
+          <div class="section" data-category="references">
+            <input
+              type="checkbox"
+              id="references"
+              name="references"
+              value="references"
+              checked
+            />
+            <a class="dead" data-section="references">/cvs/references</a>
+          </div>
+        </nav>
+        <button type="submit">Enter</button>
+      </form>
+      <script>
+        const sections = document.querySelectorAll("nav#sections .section");
+        function getDefaults() {
+          return (status = JSON.parse(localStorage.getItem("sections")));
+        }
+
+        function createNew() {
+          const cv = {};
+
+          const defaults = getDefaults();
+          const timestamp = new Date().getTime();
+          cv.created = timestamp;
+          cv.updated = timestamp;
+
+          console.log(sections);
+          sections.forEach((section) => {
+            const category = section.dataset.category;
+            cv[category] = {
+              active: defaults ? defaults[category] : true,
+            };
+            console.log(cv[category]);
+          });
+          const id = "cv_" + timestamp;
+          localStorage.setItem(id, JSON.stringify(cv));
+          return id;
+        }
+
+        (function handleLoad() {
+          // this or the other one is really buggy
+          const params = new URLSearchParams(window.location.search);
+          const id = params.get("id");
+
+          if (!id) {
+            window.location.replace(
+              window.location.href + "?id=" + createNew(),
+            );
+          }
+
+          const form = document.forms[0];
+          const formElements = form.elements;
+          formElements.id.value = id;
+
+          window.sections.querySelectorAll("input + a").forEach((link) => {
+            const category = link.dataset.section;
+            console.log(link.href);
+            if (link.href === "") return;
+            link.href += "?id=" + formElements.id.value;
+          });
+
+          const data = JSON.parse(localStorage.getItem(formElements.id.value));
+
+          const sections = document.querySelectorAll("nav#sections .section");
+          sections.forEach((section) => {
+            section.querySelector("input").checked =
+              data[section.dataset.category].active;
+          });
+
+          formElements.name.value = data.name || "";
+        })();
+
+        function updateCV() {
+          const formElements = document.forms[0].elements;
+          const id = formElements.id.value;
+          const data = JSON.parse(localStorage.getItem(id));
+
+          data.updated = new Date().getTime();
+          data.name = formElements.name.value;
+
+          sections.forEach((section) => {
+            data[section.dataset.category].active =
+              section.querySelector("input").checked;
+          });
+
+          localStorage.setItem(id, JSON.stringify(data));
+
+          flashSuccessMessage("Data saved!");
+        }
+
+        function handleSubmit(event) {
+          // this or the other one is really buggy
+
+          event.preventDefault();
+          updateCV();
+        }
+      </script>
+      <br />
+      <nav class="auto-rows">
+        <a href="./">/cvs</a>
+        <a href="../">/</a>
+      </nav>
+    </main>
+  </body>
+</html>
+
+
+
+================================================
+FILE: cvs/education.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>cvs/education</title>
+    <link rel="stylesheet" href="../shared.css">
+</head>
+
+<body>
+    <main>
+        <h1 style="display:flex;">
+            /cvs/education
+        </h1>
+        <hr>
+        <template id="education">
+            <div class="education" style="display:flex; flex-direction: column;">
+                <a class="id" href="./education/edit.html">
+                    <span class="path"></span>
+                    <br>
+                    <span class="file"></span>
+                </a>
+                <span class="degree"></span>
+                <span class="institution"></span>
+                <span class="timeframe"></span>
+                <button class="reset">Reset</button>
+         
+            </div>
+        </template>
+        <output id="educations">
+
+        </output>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./edit.html" class="back">/cvs/edit</a>
+            <a href="./">/cvs</a>
+            <a href="../">/</a>
+        </nav>
+        <hr>
+        <nav class="auto-rows">
+            <a href="/facts/education.html">/facts/education</a>
+       
+        </nav>
+    </main>
+    <script>
+
+        function handleReset() {
+            const result = confirm('Are you sure you want to reset this education?')
+            if (!result) return
+            cv_id = event.target.dataset.id
+            key = event.target.dataset.education
+            console.log(cv_id)
+            console.log(event.target.dataset.education)
+            const cv = JSON.parse(localStorage.getItem(cv_id))
+            if (!cv.hasOwnProperty('education')) return
+            if (!cv.education.hasOwnProperty(key)) return
+            delete cv.education[key]
+            localStorage.setItem(cv_id, JSON.stringify(cv))
+            
+            //window.location.reload()
+             
+        }
+        (function loadeducation() {
+            const search = new URLSearchParams(window.location.search)
+            const cv_id = search.get('id')
+          
+            const keys = Object.keys(localStorage).filter(key => key.startsWith('education_17'))
+            if (keys.length === 0) {
+                const warn = document.createElement('p')
+                warn.innerText = 'Add facts about education first.'
+                window.educations.appendChild(warn)
+                const add = document.createElement('a')
+                add.href = './education/edit.html'
+                add.innerText = '/facts/education'
+                window.educations.appendChild(add)
+                return
+            }
+
+            const template = window.education
+            keys.forEach(key => {
+                const education = JSON.parse(localStorage.getItem(key))
+                const clone = template.content.cloneNode(true)
+                clone.querySelector('a.id').href += '?id=' + cv_id + '&education=' + key
+                clone.querySelector('span.path').innerText = './education/ '
+                clone.querySelector('span.file').innerText = cv_id + '_' + key
+                clone.querySelector('span.degree').innerText = education.degree
+                clone.querySelector('span.institution').innerText = education.institution
+                clone.querySelector('span.timeframe').innerText = `${education.from} - ${education.active ? 'Present' : education.to}`
+                clone.querySelector('button.reset').dataset.id = cv_id
+                clone.querySelector('button.reset').dataset.education = key
+                clone.querySelector('button.reset').addEventListener('click', handleReset)
+
+                window.educations.appendChild(clone)
+                window.educations.appendChild(document.createElement('br'))
+            })
+
+            const back = document.querySelector('nav.auto-rows a.back')
+            back.href += '?id=' + cv_id
+            back.innerText = '/cvs/edit/' + cv_id
+
+        })()
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: cvs/index.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cvs</title>
+    <link rel="stylesheet" href="../shared.css">
+    <script src="../shared.js"></script>
+</head>
+
+<body>
+    <main>
+        <h1>/cvs</h1>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./edit.html">/cvs/new</a>
+        </nav>
+        <hr>
+        <template id="cv">
+            <div class="cv" style="display:flex; flex-direction: column;">
+                <a class="id" href="./edit.html" style="display: flex;">
+                    <span class="path"></span>
+               
+                    <span class="file"></span>
+                </a>
+                <span class="name"></span>
+                <span class="created"></span>
+                <a class="preview" href="./preview.html" style="display: flex;"></a>
+                <input type="button" value="Delete" class="delete" onclick="handleDelete(event)">
+                
+                
+            </div>
+        </template>
+        <output id="cvs">
+
+        </output>
+        <hr>
+        <nav class="auto-rows">
+            <a href="../">/</a>
+        </nav>
+    </main>
+    <script>
+        const handleDelete = (event) => {
+            const result = confirm('Are you sure you want to delete this cv?')
+            if (!result) return
+            const id = event.target.dataset.id
+            localStorage.removeItem(id)
+            window.location.reload()
+        }
+
+        (function loadcvs() {
+            const keys = Object.keys(localStorage).filter(key => key.startsWith('cv_17'))
+
+            const template = window.cv
+
+            if (keys.length === 0) {
+                const p = document.createElement('p')
+                p.innerText = 'You did not add any cvs yet.'
+                window.cvs.appendChild(p)
+                return
+            }
+            keys.forEach(key => {
+                const cv = JSON.parse(localStorage.getItem(key))
+                console.log(cv)
+                const clone = template.content.cloneNode(true)
+                clone.querySelector('a.id').href += '?id=' + key
+                clone.querySelector('span.path').innerText = '/cvs/'
+                clone.querySelector('span.file').innerText = key
+                clone.querySelector('span.created').innerText = 'Added ' + timeAgo(cv.created)
+                clone.querySelector('span.name').innerText = `"${cv.name ? cv.name : 'Untitled'}"`
+                clone.querySelector('input.delete').dataset.id = key
+                clone.querySelector('a.preview').href += '?id=' + key
+                clone.querySelector('a.preview').innerText = 'cvs/preview/' + key
+                window.cvs.appendChild(clone)
+                window.cvs.appendChild(document.createElement('br'))
+            })
+        })()
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: cvs/jobs.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>cvs/job</title>
+    <link rel="stylesheet" href="../shared.css">
+</head>
+
+<body>
+    <main>
+        <h1 style="display:flex;">
+            /cvs/job
+        </h1>
+        <hr>
+        <template id="job">
+            <div class="job" style="display:flex; flex-direction: column;">
+                <a class="id" href="/cvs/jobs/edit.html">
+                    <span class="path"></span>
+                    <br>
+                    <span class="file"></span>
+                </a>
+                <span class="title"></span>
+                <span class="company"></span>
+                <span class="timeframe"></span>
+                <button class="reset">Reset</button>
+         
+            </div>
+        </template>
+        <output id="jobs">
+
+        </output>
+        <hr>
+        <nav class="auto-rows">
+            <a href="/cvs/edit.html" class="back">/cvs/edit</a>
+            <a href="/cvs/">/cvs</a>
+            <a href="/index.html"></a>
+        </nav>
+        <hr>
+        <nav class="auto-rows">
+            <a href="/facts/jobs.html">/facts/jobs</a>
+       
+        </nav>
+    </main>
+    <script>
+
+        function handleReset() {
+            const result = confirm('Are you sure you want to reset this job?')
+            if (!result) return
+            cv_id = event.target.dataset.id
+            key = event.target.dataset.job
+            console.log(cv_id)
+            console.log(event.target.dataset.job)
+            const cv = JSON.parse(localStorage.getItem(cv_id))
+            if (!cv.hasOwnProperty('jobs')) return
+            if (!cv.jobs.hasOwnProperty(key)) return
+            delete cv.jobs[key]
+            localStorage.setItem(cv_id, JSON.stringify(cv))      
+        }
+        
+        (function loadjob() {
+            const search = new URLSearchParams(window.location.search)
+            const cv_id = search.get('id')
+          
+            const keys = Object.keys(localStorage).filter(key => key.startsWith('job_17'))
+            if (keys.length === 0) {
+                const warn = document.createElement('p')
+                warn.innerText = 'Add facts about a job first.'
+                window.jobs.appendChild(warn)
+                const add = document.createElement('a')
+                add.href = '/facts/job/edit.html'
+                add.innerText = '/facts/job'
+                window.jobs.appendChild(add)
+                return
+            }
+
+            const template = window.job
+            keys.forEach(key => {
+                const job = JSON.parse(localStorage.getItem(key))
+                const clone = template.content.cloneNode(true)
+                clone.querySelector('a.id').href += '?id=' + cv_id + '&job=' + key
+                clone.querySelector('span.path').innerText = '/facts/job/ '
+                clone.querySelector('span.file').innerText = cv_id + '_' + key
+                clone.querySelector('span.title').innerText = job.title
+                clone.querySelector('span.company').innerText = job.company
+                clone.querySelector('span.timeframe').innerText = `${job.from} - ${job.active ? 'Present' : job.to}`
+                clone.querySelector('button.reset').dataset.id = cv_id
+                clone.querySelector('button.reset').dataset.job = key
+                clone.querySelector('button.reset').addEventListener('click', handleReset)
+
+                window.jobs.appendChild(clone)
+                window.jobs.appendChild(document.createElement('br'))
+            })
+
+            const back = document.querySelector('nav.auto-rows a.back')
+            back.href += '?id=' + cv_id
+            back.innerText = '/cvs/edit/' + cv_id
+
+        })()
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: cvs/preview.html
+================================================
+<!DOCTYPE html>
+<html lang="en" style="max-width: 210mm; margin: 0 auto; box-sizing: border-box; background-color: black;">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview</title>
+    <style>
+        body {
+            background-color: white;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            color: #000;
+            /* Ensure text is black for clarity */
+            /* Remove any padding or margins that might cause weird overflow */
+            margin: 0;
+            padding: 1cm;
+        }
+
+        header {
+            display: flex;
+
+        }
+
+        main {
+            margin-top: 3rem;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        h1,
+        h2 {
+            color: rebeccapurple;
+        }
+        .layout.double {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media print {
+            @page {
+                size: A4;
+                /* Force A4 output */
+                margin: 1cm;
+                padding: 0cm;
+            }
+
+            main {
+                margin-top: 0;
+            }
+
+            header {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header
+        style="position: fixed; top: 0; left: 0; right: 0; color: white; background-color: black; height: 3rem; justify-content: space-between; align-items: center; padding: 0 1cm;">
+        <nav id="back" style="display: flex; gap: 1rem;">
+            <a id="styles" class="back" href="/styles">/styles</a>
+            <a id="style" class="back" href="/styles/">/styles/</a>
+            <a id="cvs" class="back" href="/cvs/">/cvs/</a>
+            <a id="cv" class="back" href="/cvs/">/cvs/</a>
+        </nav>
+    </header>
+    <main>
+        <section id="personal">
+            <h1 id="name">
+                <span id="first"></span>
+                <span id="last"></span>
+            </h1>
+            <h2 id="title">Web Developer</h2>
+            <div id="contact" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem">
+                <a id="email" href></a>
+                <span id="city"></span>
+                <span id="phone">tel</span>
+                <span id="linkedin">linkedin</span>
+                <span id="github">github</span>
+                <span id="twitter">twitter</span>
+            </div>
+        </section>
+        <section id="summary">
+            <h2>Summary</h2>
+
+        </section>
+
+        <template id="job">
+            <div>
+                <span class="time"></span>
+                <span class="company" style="font-weight: bold;"></span>
+                <span class="title"></span>
+                <div class="achievements"></div>
+            </div>
+        </template>
+        <section id="jobs">
+            <h2>Work Experience</h2>
+        </section>
+
+        <section id="skills">
+            <h2>Skills</h2>
+        </section>
+
+        <template id="education">
+            <h2>Education</h2>
+            <div>
+                <span class="time"></span>
+                <span class="institution" style="font-weight: bold;"></span>
+                <span class="degree"></span>
+                <div class="achievements"></div>
+            </div>
+        </template>
+        <section id="educations"></section>
+
+        <section id="interests">
+            <h2>Interests</h2>
+        </section>
+
+        <section id="references">
+            <h2>References</h2>
+        </section>
+
+        <section id="certifications">
+            <h2>Certificates</h2>
+        </section>
+
+    </main>
+    <footer></footer>
+    <script src="preview.js"></script>
+
+
+</body>
+
+</html>
+
+
+================================================
+FILE: cvs/preview.js
+================================================
+
+
+function setSectionDefaults() {
+    const sections = JSON.parse(localStorage.getItem('sections'))
+    if (!sections) return null
+    sections && Object.entries(sections).forEach(([section, active]) => {
+        document.querySelector(`#${section}`).style.display = active ? 'initial' : 'none'
+
+    })
+    return sections
+}
+
+function CV(id) {
+    if (!id) return null
+    const cv = JSON.parse(localStorage.getItem(id))
+    if (!cv) return null
+    console.groupCollapsed('CV Data')
+    console.log('Name: ' + cv.name)
+    console.log('Created ' + new Date(cv.created))
+    console.log('Updated ' + new Date(cv.updated))
+    console.log(cv)
+    console.groupEnd()
+    return cv
+}
+
+function Style(id) {
+    if (!id) return null
+    const style = JSON.parse(localStorage.getItem(id))
+    if (!style) return null
+    console.groupCollapsed('Style Data')
+    console.log('Name: ' + style.name)
+    console.log('Created ' + new Date(style.created))
+
+    console.log(style)
+    console.groupEnd()
+    return style
+}
+
+/**
+ * Set the sections to display based on the CV data
+ * @param {Object} cv
+ */
+function setSectionsByCV(cv) {
+    if (!cv) return false
+    try {
+        document.querySelector('#personal').style.display = cv.personal?.active ? 'initial' : 'none';
+        document.querySelector('#summary').style.display = cv.summary?.active ? 'initial' : 'none';
+        document.querySelector('#educations').style.display = cv.education?.active ? 'initial' : 'none';
+        document.querySelector('#jobs').style.display = cv.jobs.active ? 'initial' : 'none';
+        document.querySelector('#skills').style.display = cv.skills.active ? 'initial' : 'none';
+        document.querySelector('#interests').style.display = cv.interests.active ? 'initial' : 'none';
+        document.querySelector('#references').style.display = cv.references.active ? 'initial' : 'none';
+        document.querySelector('#certifications').style.display = 'none'
+    } catch (error) {
+        console.error(error)
+        return false
+    }
+
+    return true
+
+}
+
+function fillPersonal() {
+    const personal = JSON.parse(localStorage.getItem('personal'))
+    if (!personal) return
+    console.groupCollapsed('Personal')
+    console.log(personal)
+    console.groupEnd()
+
+    window.first.innerText = personal.first
+    window.last.innerText = personal.last
+    window.email.innerText = personal.email || ''
+    window.email.href = `mailto:${personal.email}`
+    window.city.innerText = personal.location || ''
+    // window.phone.innerText = personal.phone || ''
+}
+
+function fillSummary() {
+    const summary = JSON.parse(localStorage.getItem('summary'))
+    if (!summary) return
+    console.groupCollapsed('Summary')
+    console.log(summary)
+    console.groupEnd()
+    window.summary.appendChild(document.createTextNode(summary))
+}
+
+
+function parseAchievement(achievements) {
+    if (!achievements) return null
+    const splitted = achievements.split('\n')
+
+    const nonEmpty = splitted.filter(line => !['', ' ', '\n', '\r', '\r\n', '\n\r'].includes(line))
+
+    const bulletPoints = nonEmpty.map(line => line.startsWith('-'))
+
+    const noBullets = bulletPoints.every(bullet => bullet === false)
+
+
+    const lines = noBullets ? nonEmpty : nonEmpty.map(line => line.slice(1))
+
+    const reformatted = lines.map(line => {
+        const split = line.split('**')
+
+        if (split.length < 3) {
+            const span = document.createElement('span')
+            span.textContent = line
+            return span
+        }
+
+
+        const span = document.createElement('span')
+        split.forEach((part, index) => {
+            if (index % 2 === 0) {
+                span.appendChild(document.createTextNode(part))
+            }
+
+            if (index % 2 === 1) {
+                const strong = document.createElement('strong')
+                strong.appendChild(document.createTextNode(part))
+                span.appendChild(strong)
+            }
+        })
+        return span
+
+
+    })
+
+    if (noBullets) {
+        const wrapper = document.createElement('div')
+        reformatted.forEach(achievement => {
+            wrapper.appendChild(achievement)
+        })
+        return wrapper
+    }
+
+    const unorderedList = document.createElement('ul')
+    reformatted.forEach(achievement => {
+        const li = document.createElement('li')
+        li.appendChild(achievement)
+        unorderedList.appendChild(li)
+    })
+
+    return unorderedList
+}
+
+
+
+function fillJobs(cv) {
+    console.groupCollapsed('Jobs')
+    const jobKeys = Object.keys(localStorage).filter(key => key.startsWith('job_'))
+    if (!jobKeys) {
+        window.jobs.style.display = 'none'
+        console.groupEnd()
+        return
+    }
+
+
+    jobKeys.forEach(job => {
+        const entry = JSON.parse(localStorage.getItem(job))
+
+        const template = window.job
+        const clone = template.content.cloneNode(true)
+
+        clone.querySelector('.title').innerText = entry.title
+        clone.querySelector('.company').innerText = entry.company
+        clone.querySelector('.time').innerText = `${entry.from} - ${entry.to || 'Present'}`
+
+        const defaultAchievements = entry.achievements
+
+        const customAchievements = cv && cv.hasOwnProperty('jobs') && cv.jobs[job]?.achievements
+
+        const achievements = customAchievements || defaultAchievements
+        const achievementsParsed = parseAchievement(achievements)
+        console.log('achievementsParsed', achievementsParsed)
+        // clone.querySelector('.achievements').innerText = customAchievements || defaultAchievements
+
+        clone.querySelector('.achievements').appendChild(achievementsParsed)
+
+        window.jobs.appendChild(clone)
+    })
+    console.groupEnd()
+}
+
+function fillSkills() {
+
+    const skillKeys = Object.keys(localStorage).filter(key => key.startsWith('skill_'))
+    console.groupCollapsed('Skills')
+    console.log(skillKeys)
+
+    console.log(skills)
+    // unique skill categories
+    const skillCategories = [...new Set(skillKeys.map(key => JSON.parse(localStorage.getItem(key))).map(skill => skill.category))]
+    console.log(skillCategories)
+    console.info('Skills')
+    console.log(window.skills)
+    skillCategories.forEach(category => {
+        const skillsInCategory = skillKeys.map(key => JSON.parse(localStorage.getItem(key))).filter(skill => skill.category === category)
+        console.log(skillsInCategory)
+        const h3 = document.createElement('h3')
+        h3.innerText = category
+        window.skills.appendChild(h3)
+        skillsInCategory.forEach(skill => {
+            const p = document.createElement('p')
+            p.innerText = skill.skill
+            window.skills.appendChild(p)
+        })
+    })
+    console.groupEnd()
+}
+
+function fillEducations() {
+
+    // the education entries are 'education_timestamp' like 'education_1630512345678'
+    const educationKeys = Object.keys(localStorage).filter(key => key.startsWith('education_'))
+    console.groupCollapsed('Education')
+    console.log(educationKeys)
+    const educations = educationKeys.filter(key => key.includes('education'))
+    console.log(educations)
+    educations.forEach(education => {
+        const template = window.education
+        const entry = JSON.parse(localStorage.getItem(education))
+        console.log(entry)
+        const clone = template.content.cloneNode(true)
+        clone.querySelector('.degree').innerText = entry.degree
+        clone.querySelector('.institution').innerText = entry.institution
+        clone.querySelector('.time').innerText = `${entry.from} - ${entry.to || 'Present'}`
+
+        const defaultAchievements = entry.achievements
+        const customAchievements = cv && cv.hasOwnProperty('education') && cv.education[education]?.achievements
+        const achievements = customAchievements || defaultAchievements
+        console.log('achievements', achievements)
+
+        const achievementsParsed = parseAchievement(achievements)
+        console.log(achievementsParsed.children[0].textContent)
+        clone.querySelector('.achievements').appendChild(achievementsParsed)
+        window.educations.appendChild(clone)
+    })
+    console.groupEnd()
+}
+
+
+function fillInterests() {
+
+
+    const interests = JSON.parse(localStorage.getItem('interests'))
+    console.groupCollapsed('Interests')
+    console.log(interests)
+    console.groupEnd()
+
+}
+
+function correctLinks(params) {
+    const nav = window.back
+
+    const styleId = params.get('style')
+    const backStyle = nav.children.style
+    if (!styleId) {
+        backStyle.remove()
+    } else {
+        backStyle.href = '/styles/edit.html?id=' + styleId
+        backStyle.innerText = '/styles/' + styleId
+    }
+
+    const backCV = nav.querySelector('#cv')
+    if (!id) {
+        backCV.remove()
+    } else {
+        backCV.href = '/cvs/edit.html?id=' + id
+        backCV.innerText = '/cvs/' + id
+    }
+}
+
+
+const sections = setSectionDefaults()
+console.log(sections)
+const params = new URLSearchParams(window.location.search)
+const id = params.get('id')
+const styleID = params.get('style')
+
+const cv = CV(id)
+
+const main = document.querySelector('main')
+const style = Style(styleID)
+
+const layout = style?.layout ?? []
+// console.log('layout', layout)
+// console.log(layout.sections)
+const sectionTypes = ['single', 'left', 'right']
+layout.hasOwnProperty('sections') && layout.sections.forEach(sectionName => {
+    // console.log(sectionName) // e.g. single0, left1, right2
+    if (!sectionName) return
+    const match = sectionTypes.find(type => sectionName.includes(type))
+    // console.log(match)
+    if (!match) return
+    const sectionType = match
+    const sectionNumber = sectionName.replace(sectionType, '')
+    // console.log(sectionType, sectionNumber)
+
+    if (sectionType === 'single') {
+        const single = document.createElement('div')
+        single.classList.add('layout')
+        single.dataset.layout = 'single'
+        single.dataset.id = sectionNumber;
+        single.id = sectionName
+
+        // append to start of main
+        main.prepend(single)
+
+
+        console.log(layout)
+        console.log(layout.sections)
+        const entries = layout.sections.map(section => { section === sectionName })
+        console.log(entries)
+    }
+
+    if (sectionType === 'left') {
+        const double = document.createElement('div')
+        double.dataset.layout = 'double'
+        double.classList.add('layout')
+        double.classList.add('double')
+
+        const left = document.createElement('div')
+        left.classList.add('layout')
+        left.dataset.layout = 'left'
+        left.dataset.id = sectionNumber;
+        left.id = sectionName
+        double.appendChild(left)
+
+        const right = document.createElement('div')
+        right.classList.add('layout')
+        right.dataset.layout = 'right'
+        right.dataset.id = `${Number(sectionNumber) + 1}`
+
+        right.id = `right${Number(sectionNumber) + 1}`;
+        double.appendChild(right)
+        // append to start of main
+        main.prepend(double)
+    }
+
+})
+
+console.groupCollapsed('Sections')
+Object.entries(sections).forEach(([section, active]) => {
+    console.log(section, active)
+
+    const sectionElement = document.querySelector(`#${section}`)
+    if (!sectionElement) {
+        console.warn(`Section ${section} not found in DOM`)
+        return
+    }
+
+
+    if (!layout.hasOwnProperty(section)) {
+        console.warn(`Section ${section} not found in layout`)
+        return
+    }
+    const targetID = layout[section]
+    const targetSelector = `#${targetID}`
+    const sectionTarget = document.querySelector(targetSelector)
+    if (!sectionTarget) {
+        console.warn(`Section ${section} not found in layout`)
+        return
+    }
+
+
+    sectionTarget.appendChild(sectionElement)
+
+})
+
+// sort the sections by data-id
+const sorted = [...main.children].sort((a, b) => b.dataset.id - a.dataset.id) // Yeah reverse. Of course, reverse. ;) However it does what it shouldf
+console.log(sorted)
+sorted.forEach(section => {
+    main.appendChild(section)
+})
+console.groupEnd()
+const sectionsSet = setSectionsByCV(cv)
+if (!sectionsSet) console.log('Sections not set. Set defaults in the "facts" section')
+// anyway, fill the sections
+if (!cv || cv.personal?.active) fillPersonal()
+if (!cv || cv.summary?.active) fillSummary()
+if (!cv || cv.jobs?.active) fillJobs(cv)
+if (!cv || cv.skills?.active) fillSkills()
+if (!cv || cv.education?.active) fillEducations()
+if (!cv || cv.interests?.active) fillInterests()
+
+correctLinks(params)
+
+
+================================================
+FILE: cvs/summary.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary</title>
+    <link rel="stylesheet" href="../shared.css">
+    <script src="../shared.js"></script>
+</head>
+
+<body>
+
+    <main>
+        <h1>
+            <span class="cv">cvID3434343434343434</span><br>    
+            <span>/summary</span>
+
+        </h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <input type="hidden" name="id" id="id">
+            <textarea name="summary" id="summary" rows="20"></textarea>
+            <br>
+            <button type="submit">Enter</button>
+        </form>
+        <script>
+
+            function handleSubmit(event) {
+                event.preventDefault();
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get('id')
+                
+                const cv = JSON.parse(localStorage.getItem(id))
+                console.log(cv)
+                const cvHasSummary = cv && cv.hasOwnProperty('summary')
+                cv.summary = cvHasSummary ? cv.summary : {}
+
+                const formElements = document.forms[0].elements
+                cv.summary.custom = formElements.summary.value
+                
+                const summary = formElements.summary.value
+                if (!summary) {
+                    delete cv.summary.custom
+                }
+
+                const successMessage = summary ? 'Data saved!' : 'Summary deleted!'
+             
+                localStorage.setItem(id, JSON.stringify(cv))
+                flashSuccessMessage(successMessage)
+
+                // go to the same page with the id 
+                setTimeout(() => {
+                    
+                    window.location.reload()
+
+                }, 2000)
+            }
+        </script>
+        <br>
+        <nav class="auto-rows">
+            <a class="back" href="./edit.html">/cvs/edit</a>
+            <a href="./">/cvs</a>
+            <a href="../">/</a>
+        </nav>
+    </main>
+    <script>
+        (function handleLoad() {
+           
+            const params = new URLSearchParams(window.location.search);
+            const cvID = params.get('id') 
+
+            const cv = JSON.parse(localStorage.getItem(cvID))
+   
+            const cvHasSummary = cv && cv.hasOwnProperty('summary') && cv.summary.hasOwnProperty('custom')
+            console.log(cvHasSummary)
+            const summary = cvHasSummary ? cv.summary.custom : JSON.parse(localStorage.getItem('summary'))
+            console.log(summary)
+            const formElements = document.forms[0].elements
+            formElements.id.value = id
+            formElements.summary.value = summary
+
+            const header = document.querySelector('h1 .cv')
+            header.innerText = '/cvs/' + cvID
+            const back = document.querySelector('nav a.back')
+            back.href += '?id=' + params.get('id')
+            back.innerText += '?id=' + params.get('id') 
+        })()
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: cvs/education/edit.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/cvs/education/edit</title>
+    <link rel="stylesheet" href="../../shared.css">
+    <script src="../../shared.js"></script>
+</head>
+
+<body>
+    <main>
+        <h1>/cvs/education/edit</h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <input type="hidden" name="id" id="id">
+            <div>
+            
+                <span id="degree"></span>
+            </div>
+            <div>
+               
+                <span id="institution"></span>
+            </div>
+            <div>
+                <span id="from"></span> - <span id="to"></span>
+            </div>
+            
+            <label for="achievements">Achievements</label>
+            <textarea name="achievements" id="achievements" autofocus></textarea>
+            <br>
+            <button type="submit">Enter</button>
+        </form>
+        <script>
+        
+     
+            function handleSubmit(event) {
+                const params = new URLSearchParams(window.location.search);
+                const cvID = params.get('id')
+                if (!cvID) return
+
+                const cvData = JSON.parse(localStorage.getItem(cvID))
+
+                event.preventDefault();
+                const formElements = document.forms[0].elements
+                
+                const achievements = formElements.achievements.value
+
+                const id = params.get("education")
+                if (!cvData.education.hasOwnProperty(id)) cvData.education[id] = {}
+                cvData.education[id].achievements = achievements
+                localStorage.setItem(cvID, JSON.stringify(cvData))
+                
+
+                flashSuccessMessage('Data saved!')
+                setTimeout(() => {
+                    window.location = '/cvs/education/edit.html?id=' + cvID + '&education=' + id
+                }, 2000)
+            }
+        </script>
+        <br>
+        <nav class="auto-rows">
+            <a href="../education.html" class="back">/cvs/education/</a>
+            <a href="../edit.html" class="back">/cvs/edit/</a>
+            <a href="../">/cvs</a>
+            <a href="../../">/</a>
+        </nav>
+    </main>
+    <script>
+            (function handleLoad() {
+                const params = new URLSearchParams(window.location.search);
+                
+                const id = params.get('education')
+                if (!id) return
+
+                const cvID = params.get('id')
+                if (!cvID) return
+
+                const data = JSON.parse(localStorage.getItem(id))
+                if (!data) return
+
+                const form = document.forms[0]
+                form.querySelector('#degree').textContent = data.degree
+                form.querySelector('#institution').textContent = data.institution
+                form.querySelector('#from').textContent = data.from
+                form.querySelector('#to').textContent = data.active ? 'now' : data.to
+
+                const cvData = JSON.parse(localStorage.getItem(cvID))
+                if (!cvData) return
+
+                const achievementsSaved = (cvData.hasOwnProperty('education') && cvData.education.hasOwnProperty(id)) 
+                const cvAchievements = achievementsSaved ? cvData.education[id].achievements : null
+                
+                
+
+                const formElements = form.elements
+                formElements.achievements.value = cvAchievements ? cvAchievements : data.achievements
+
+                console.log(data)
+                console.log(cvID)
+                const backLinks = document.querySelectorAll('a.back') 
+                backLinks.forEach(backLink => {
+                    backLink.href += '?id=' + cvID
+                    backLink.textContent += cvID
+                })
+                    
+      
+                
+            })()
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: cvs/jobs/edit.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/cvs/jobs/edit</title>
+    <link rel="stylesheet" href="../../shared.css">
+    <script src="../../shared.js"></script>
+</head>
+
+<body>
+    <main>
+        <h1>/cvs/jobs/edit</h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <input type="hidden" name="id" id="id">
+            <div>
+            
+                <span id="degree"></span>
+            </div>
+            <div>
+               
+                <span id="institution"></span>
+            </div>
+            <div>
+                <span id="from"></span> - <span id="to"></span>
+            </div>
+            
+            <label for="achievements">Achievements</label>
+            <textarea name="achievements" id="achievements" autofocus></textarea>
+            <br>
+            <button type="submit">Enter</button>
+        </form>
+        <script>
+        
+     
+            function handleSubmit(event) {
+                const params = new URLSearchParams(window.location.search);
+                const cvID = params.get('id')
+                if (!cvID) return
+
+                const cvData = JSON.parse(localStorage.getItem(cvID))
+
+                event.preventDefault();
+                const formElements = document.forms[0].elements
+                
+                const achievements = formElements.achievements.value
+
+                const id = params.get("job")
+                if (!cvData.jobs.hasOwnProperty(id)) cvData.jobs[id] = {}
+                cvData.jobs[id].achievements = achievements
+                localStorage.setItem(cvID, JSON.stringify(cvData))
+                
+
+                flashSuccessMessage('Data saved!')
+                setTimeout(() => {
+                    window.location = '/cvs/jobs/edit.html?id=' + cvID + '&job=' + id
+                }, 2000)
+            }
+        </script>
+        <br>
+        <nav class="auto-rows">
+            <a href="/cvs/jobs.html" class="back">/cvs/jobs/</a>
+            <a href="/cvs/edit.html" class="back">/cvs/edit/</a>
+            <a href="/cvs/">/cvs</a>
+            <a href="/index.html">/</a>
+        </nav>
+    </main>
+    <script>
+            (function handleLoad() {
+                const params = new URLSearchParams(window.location.search);
+                
+                const id = params.get('job')
+                if (!id) return
+
+                const cvID = params.get('id')
+                if (!cvID) return
+
+                const data = JSON.parse(localStorage.getItem(id))
+                if (!data) return
+
+                const form = document.forms[0]
+                form.querySelector('#degree').textContent = data.degree
+                form.querySelector('#institution').textContent = data.institution
+                form.querySelector('#from').textContent = data.from
+                form.querySelector('#to').textContent = data.active ? 'now' : data.to
+
+                const cvData = JSON.parse(localStorage.getItem(cvID))
+                if (!cvData) return
+
+                const achievementsSaved = (cvData.hasOwnProperty('jobs') && cvData.jobs.hasOwnProperty(id)) 
+                const cvAchievements = achievementsSaved ? cvData.jobs[id].achievements : null
+                
+                
+
+                const formElements = form.elements
+                formElements.achievements.value = cvAchievements ? cvAchievements : data.achievements
+
+                console.log(data)
+                console.log(cvID)
+                const backLinks = document.querySelectorAll('a.back') 
+                backLinks.forEach(backLink => {
+                    backLink.href += '?id=' + cvID
+                    backLink.textContent += cvID
+                })
+                    
+      
+                
+            })()
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: facts/education.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Education</title>
+    <link rel="stylesheet" href="../shared.css">
+</head>
+
+<body>
+    <main>
+        <h1>/facts/education</h1>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./education/edit.html">/facts/education/new</a>
+        </nav>
+        <hr>
+        <template id="education">
+            <div class="education" style="display:flex; flex-direction: column;">
+                <a class="id" href="./education/edit.html">
+                    <span class="path"></span>
+                    <br>
+                    <span class="file"></span>
+                </a>
+                <span class="degree"></span>
+                <span class="institution"></span>
+                <span class="timeframe"></span>
+                <input type="button" value="Delete" class="delete" onclick="handleDelete(event)">
+            </div>
+        </template>
+        <output id="educations">
+
+        </output>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./">/facts</a>
+            <a href="../index.html">/</a>
+        </nav>
+    </main>
+    <script>
+        const handleDelete = (event) => {
+            const result = confirm('Are you sure you want to delete this education?')
+            if (!result) return
+            const id = event.target.dataset.id
+            localStorage.removeItem(id)
+            window.location.reload()
+        }
+
+        (function loadeducation() {
+            const keys = Object.keys(localStorage).filter(key => key.startsWith('education_17'))
+           
+            const template = window.education
+
+            if (keys.length === 0) {
+                const p = document.createElement('p')
+                p.innerText = 'You did not add any education yet.'
+                window.educations.appendChild(p)
+                return
+            }
+            keys.forEach(key => {
+                const education = JSON.parse(localStorage.getItem(key))
+                const clone = template.content.cloneNode(true)
+                clone.querySelector('a.id').href += '?id=' + key
+                clone.querySelector('span.path').innerText = '/facts/education/ '
+                clone.querySelector('span.file').innerText = key
+                clone.querySelector('span.degree').innerText = education.degree
+                clone.querySelector('span.institution').innerText = education.institution
+                clone.querySelector('span.timeframe').innerText = `${education.from} - ${education.active ? 'Present' : education.to}`
+                clone.querySelector('input.delete').dataset.id = key
+
+                window.educations.appendChild(clone)
+                window.educations.appendChild(document.createElement('br'))
+            })
+        })()
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: facts/index.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facts</title>
+    <link rel="stylesheet" href="../shared.css">
+</head>
+
+<body>
+    <main>
+        <h1>/facts</h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <nav id="sections" class="auto-rows">
+                <div class="section" data-category="personal">
+                    <input type="checkbox" id="personal" name="personal" value="personal" checked>
+                    <a data-section="personal" href="./personal.html">/facts/personal</a>
+                </div>
+
+                <div class="section" data-category="summary">
+                    <input type="checkbox" id="summary" name="summary" value="summary" checked>
+                    <a data-section="summary" href="./summary.html">/facts/summary</a>
+                </div>
+
+                <div class="section" data-category="jobs">
+                    <input type="checkbox" id="jobs" name="jobs" value="jobs" checked>
+                    <a data-section="jobs" href="./jobs.html">/facts/jobs</a>
+                </div>
+
+                <div class="section" data-category="educations">
+                    <input type="checkbox" id="educations" name="educations" value="educations" checked>
+                    <a data-section="educations" href="./education.html">/facts/education</a>
+                </div>
+
+                <div class="section" data-category="skills">
+                    <input type="checkbox" id="skills" name="skills" value="skills" checked>
+                    <a data-section="skills" href="./skills.html">/facts/skills</a>
+                </div>
+
+                <div class="section" data-category="interests">
+                    <input type="checkbox" id="interests" name="interests" value="interests" checked>
+                    <a data-section="interests" href="./interests.html">/facts/interests</a>
+                </div>
+
+                <div class="section" data-category="references">
+                    <input type="checkbox" id="references" name="references" value="references" checked>
+                    <a data-section="references" href="./references.html">/facts/references</a>
+                </div>
+
+                <a href="../index.html">/</a>
+            </nav>
+        </form>
+
+        <script>
+            const sections = document.querySelectorAll('nav#sections .section')
+          
+            const checkboxes = document.querySelectorAll('nav#sections .section input[type="checkbox"]')
+ 
+            function getStatus () {
+                const status = {}
+                checkboxes.forEach(checkbox => {
+                    status[checkbox.value] = checkbox.checked
+                })
+                return status
+            }
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    localStorage.setItem('sections', JSON.stringify(getStatus()))
+                })
+            })
+
+            function setStatus () {
+                const status = JSON.parse(localStorage.getItem('sections'))
+                if (status) {
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = status[checkbox.value]
+                    })
+                }
+            }
+            setStatus()
+        </script>
+    </main>
+</body>
+
+</html>
+
+
+================================================
+FILE: facts/interests.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>interests</title>
+    <link rel="stylesheet" href="../shared.css">
+</head>
+
+<body>
+    <main>
+        <h1>/facts/interests</h1>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./interests/edit.html">/facts/interests/new</a>
+        </nav>
+        <hr>
+        <template id="category">
+            <div class="category">
+                <h2 class="category"></h2>
+                <div class="interests">
+
+                </div>
+            </div>
+        </template>
+        <template id="interest">
+            <div class="interest" style="display:flex; flex-direction: column;">
+                <a class="id" href="./interests/edit.html">
+                    <span class="path"></span>
+                    <br>
+                    <span class="file"></span>
+                </a>
+                <span class="name"></span>
+     
+
+                <input type="button" value="Delete" class="delete" onclick="handleDelete(event)">
+            </div>
+        </template>
+        <output id="interests">
+
+        </output>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./">/facts</a>
+            <a href="../index.html">/</a>
+        </nav>
+    </main>
+    <script>
+        const handleDelete = (event) => {
+            const result = confirm('Are you sure you want to delete this interest?')
+            if (!result) return
+            const id = event.target.dataset.id
+            localStorage.removeItem(id)
+            window.location.reload()
+        }
+
+        function addCategory(category) {
+            const template = window.category
+            const clone = template.content.cloneNode(true)
+            clone.querySelector('h2.category').innerText = category
+            clone.querySelector('div.interests').id = category
+            window.interests.appendChild(clone)
+        }
+
+        (function loadinterests() {
+            const keys = Object.keys(localStorage).filter(key => key.startsWith('interest_17'))
+
+            const template = window.interest
+
+            if (keys.length === 0) {
+                const p = document.createElement('p')
+                p.innerText = 'You did not add any interests yet.'
+                window.interests.appendChild(p)
+                return
+            }
+            categories = []
+            keys.forEach(key => {
+                const interest = JSON.parse(localStorage.getItem(key))
+
+                const category = interest.category ? interest.category : 'uncategorized'
+    
+                if (!categories.includes(category)) {
+
+
+                    categories.push(category)
+                    addCategory(category)
+                }
+                const clone = template.content.cloneNode(true)
+                clone.querySelector('a.id').href += '?id=' + key
+                clone.querySelector('span.path').innerText = '/facts/interests/'
+                clone.querySelector('span.file').innerText = key
+                clone.querySelector('span.name').innerText = interest.interest
+         
+                clone.querySelector('input.delete').dataset.id = key
+
+                window.interests.querySelector('#' + category).appendChild(clone)
+            })
+        })()
+    </script>
+</body>
+
+</html>
+
+
+
+================================================
+FILE: facts/jobs.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs</title>
+    <link rel="stylesheet" href="../shared.css">
+</head>
+
+<body>
+    <main>
+        <h1>/facts/jobs</h1>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./jobs/edit.html">/facts/jobs/new</a>
+        </nav>
+        <hr>
+        <template id="job">
+            <div class="job" style="display:flex; flex-direction: column;">
+                <a class="id" href="./jobs/edit.html">
+                    <span class="path"></span>
+                    <br>
+                    <span class="file"></span>
+                </a>
+                <span class="title"></span>
+                <span class="company"></span>
+                <span class="timeframe"></span>
+                <input type="button" value="Delete" class="delete" onclick="handleDelete(event)">
+            </div>
+        </template>
+        <output id="jobs">
+
+        </output>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./">/facts</a>
+            <a href="../index.html">/</a>
+        </nav>
+    </main>
+    <script>
+        const handleDelete = (event) => {
+            const result = confirm('Are you sure you want to delete this job?')
+            if (!result) return
+            const id = event.target.dataset.id
+            localStorage.removeItem(id)
+            window.location.reload()
+        }
+
+        (function loadJobs() {
+            const keys = Object.keys(localStorage).filter(key => key.startsWith('job_17'))
+
+        
+            const template = window.job
+
+            if (keys.length === 0) {
+                const p = document.createElement('p')
+                p.innerText = 'You did not add any jobs yet.'
+                window.jobs.appendChild(p)
+                return
+            }
+            keys.forEach(key => {
+                const job = JSON.parse(localStorage.getItem(key))
+            
+                const clone = template.content.cloneNode(true)
+                clone.querySelector('a.id').href += '?id=' + key
+                clone.querySelector('span.path').innerText = '/facts/jobs/'
+                clone.querySelector('span.file').innerText = key
+                clone.querySelector('span.title').innerText = job.title
+                clone.querySelector('span.company').innerText = job.company
+                clone.querySelector('span.timeframe').innerText = `${job.from} - ${job.active ? 'Present' : job.to}`
+                clone.querySelector('input.delete').dataset.id = key
+
+                window.jobs.appendChild(clone)
+                window.jobs.appendChild(document.createElement('br'))
+            })
+        })()
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: facts/personal.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal</title>
+    <link rel="stylesheet" href="../shared.css">
+    <script src="../shared.js"></script>
+</head>
+
+<body>
+
+    <main>
+        <h1>/facts/personal</h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <label for="first">First name</label>
+            <input type="text" name="first" id="first">
+            <label for="last">Last name</label>
+            <input type="text" name="last" id="last">
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email">
+            <label for="location">Location</label>
+            <input type="text" name="location" id="location">
+            <br>
+            <button type="submit">Enter</button>
+        </form>
+        <script>
+            (function handleLoad() {
+                const data = JSON.parse(localStorage.getItem('personal'))
+                const formElements = document.forms[0].elements
+                formElements.first.value = data.first
+                formElements.last.value = data.last
+                formElements.email.value = data.email
+                formElements.location.value = data.location
+            })()
+     
+            function handleSubmit(event) {
+                event.preventDefault();
+                const formElements = document.forms[0].elements
+                const data = {
+                    first: formElements.first.value,
+                    last: formElements.last.value,
+                    email: formElements.email.value,
+                    location: formElements.location.value
+                }
+                localStorage.setItem('personal', JSON.stringify(data))
+                flashSuccessMessage('Data saved!')
+            }
+        </script>
+        <br>
+        <nav class="auto-rows">
+            <a href="./">/facts/</a>
+            <a href="../index.html">/</a>
+        </nav>
+    </main>
+    <script>
+
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: facts/skills.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>skills</title>
+    <link rel="stylesheet" href="../shared.css">
+</head>
+
+<body>
+    <main>
+        <h1>/facts/skills</h1>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./skills/edit.html">/facts/skills/new</a>
+        </nav>
+        <hr>
+        <template id="category">
+            <div class="category">
+                <h2 class="category"></h2>
+                <div class="skills">
+
+                </div>
+            </div>
+        </template>
+        <template id="skill">
+            <div class="skill" style="display:flex; flex-direction: column;">
+                <a class="id" href="./skills/edit.html">
+                    <span class="path"></span>
+                    <br>
+                    <span class="file"></span>
+                </a>
+                <span class="name"></span>
+                <span class="level"></span>
+
+                <input type="button" value="Delete" class="delete" onclick="handleDelete(event)">
+            </div>
+        </template>
+        <output id="skills">
+
+        </output>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./">/facts</a>
+            <a href="../index.html">/</a>
+        </nav>
+    </main>
+    <script>
+        const handleDelete = (event) => {
+            const result = confirm('Are you sure you want to delete this skill?')
+            if (!result) return
+            const id = event.target.dataset.id
+            localStorage.removeItem(id)
+            window.location.reload()
+        }
+
+        function addCategory(category) {
+            const template = window.category
+            const clone = template.content.cloneNode(true)
+            clone.querySelector('h2.category').innerText = category
+            clone.querySelector('div.skills').id = category
+            window.skills.appendChild(clone)
+        }
+
+        (function loadskills() {
+            const keys = Object.keys(localStorage).filter(key => key.startsWith('skill_17'))
+
+            const template = window.skill
+
+            if (keys.length === 0) {
+                const p = document.createElement('p')
+                p.innerText = 'You did not add any skills yet.'
+                window.skills.appendChild(p)
+                return
+            }
+            categories = []
+            keys.forEach(key => {
+                const skill = JSON.parse(localStorage.getItem(key))
+
+                const category = skill.category ? skill.category : 'uncategorized'
+         
+                if (!categories.includes(category)) {
+
+
+                    categories.push(category)
+                    addCategory(category)
+                }
+                const clone = template.content.cloneNode(true)
+                clone.querySelector('a.id').href += '?id=' + key
+                clone.querySelector('span.path').innerText = '/facts/skills/'
+                clone.querySelector('span.file').innerText = key
+                clone.querySelector('span.name').innerText = skill.skill
+                clone.querySelector('span.level').innerText = skill.level
+
+                clone.querySelector('input.delete').dataset.id = key
+
+                //window.skills.appendChild(clone)
+
+                window.skills.querySelector('#' + category).appendChild(clone)
+                //window.skills.appendChild(document.createElement('br'))
+            })
+        })()
+    </script>
+</body>
+
+</html>
+
+
+
+================================================
+FILE: facts/summary.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary</title>
+    <link rel="stylesheet" href="../shared.css">
+    <script src="../shared.js"></script>
+</head>
+
+<body>
+
+    <main>
+        <h1>/summary</h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <textarea name="summary" id="summary" rows="20"></textarea>
+            <br>
+            <button type="submit">Enter</button>
+        </form>
+        <script>
+            (function handleLoad() {
+                const summary = JSON.parse(localStorage.getItem('summary'))
+                if (summary === null) return
+                const formElements = document.forms[0].elements
+                formElements.summary.value = summary
+            })()
+            function handleSubmit(event) {
+                event.preventDefault();
+                const formElements = document.forms[0].elements
+            
+                localStorage.setItem('summary', JSON.stringify(formElements.summary.value))
+                flashSuccessMessage('Data saved!')
+            }
+        </script>
+        <br>
+        <nav class="auto-rows">
+            <a href="./">/facts/</a>
+            <a href="../index.html">/</a>
+        </nav>
+    </main>
+    <script>
+
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: facts/education/edit.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/facts/education/edit</title>
+    <link rel="stylesheet" href="../../shared.css">
+    <script src="../../shared.js"></script>
+</head>
+
+<body>
+    <main>
+        <h1>/facts/education/edit</h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <input type="hidden" name="id" id="id">
+            <label for="degree">Degree</label>
+            <input type="text" name="degree" id="degree">
+            <label for="institution">Institution</label>
+            <input type="text" name="institution" id="institution">
+            <label for="from">From</label>
+            <input type="date" name="from" id="from">
+            <label for="to">To</label>
+            <input type="date" name="to" id="to">
+            <label>Achievements</label>
+            <textarea name="achievements" id="achievements" rows="5"></textarea>
+            <label for="active"><input type="checkbox" name="active" id="active"> I currently work there</label>
+            <br>
+            <button type="submit">Enter</button>
+        </form>
+        <script>
+            (function handleLoad() {
+                const params = new URLSearchParams(window.location.search);
+                
+                const id = params.get('id');
+                if (!id) return
+
+                const data = JSON.parse(localStorage.getItem(id))
+                if (!data) return
+
+                const formElements = document.forms[0].elements
+                formElements.id.value = data.id
+                formElements.degree.value = data.degree
+                formElements.institution.value = data.institution
+                formElements.from.value = data.from
+                formElements.to.value = data.active ? '' : data.to
+                formElements.active.checked = data.active
+                formElements.achievements.value = data.achievements
+            })()
+     
+            function handleSubmit(event) {
+           
+                event.preventDefault();
+                const formElements = document.forms[0].elements
+                
+                const data = {
+                    degree: formElements.degree.value,
+                    institution: formElements.institution.value,
+                    from: formElements.from.value,
+                    to: formElements.active.value ? 'now' : formElements.to.value,
+                    active: formElements.active.checked,
+                    achievements: formElements.achievements.value
+
+                }
+
+                const id = formElements.id.value ? formElements.id.value : 'education_' + new Date().getTime()
+
+                localStorage.setItem(id, JSON.stringify(data))
+                formElements.id.value = id
+
+                flashSuccessMessage('Data saved!')
+            }
+        </script>
+        <br>
+        <nav class="auto-rows">
+            <a href="../education.html">/facts/education/</a>
+            <a href="../">/facts</a>
+            <a href="../../">/</a>
+        </nav>
+    </main>
+</body>
+
+</html>
+
+
+================================================
+FILE: facts/interests/edit.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/facts/interests/edit</title>
+    <link rel="stylesheet" href="../..//shared.css">
+    <script src="../..//shared.js"></script>
+</head>
+
+<body>
+    <main>
+        <h1>/facts/interests/edit</h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <input type="hidden" name="id" id="id">
+            <label for="interest">Interest</label>
+            <input type="text" name="interest" id="interest">
+            <label for="category">Category</label>
+            <input type="text" name="category" id="category">
+            <br>
+            <button type="submit">Enter</button>
+        </form>
+        <script>
+            (function handleLoad() {
+                const params = new URLSearchParams(window.location.search);
+                
+                const id = params.get('id');
+                if (!id) return
+
+                const data = JSON.parse(localStorage.getItem(id))   
+                if (!data) return
+
+                const formElements = document.forms[0].elements
+                formElements.id.value = id
+                formElements.interest.value = data.interest
+                formElements.category.value = data.category
+
+            })()
+     
+            function handleSubmit(event) {
+           
+                event.preventDefault();
+                const formElements = document.forms[0].elements
+
+                const data = {
+                    interest: formElements.interest.value,
+                    category: formElements.category.value
+                }
+    
+   
+                const id = formElements.id.value ? formElements.id.value : 'interest_' + new Date().getTime()
+          
+                localStorage.setItem(id, JSON.stringify(data))
+                formElements.id.value = id 
+                
+                flashSuccessMessage('Data saved!')
+            }
+        </script>
+        <br>
+        <nav class="auto-rows">
+            <a href="../interests.html">/facts/interests/</a>
+            <a href="../">/facts</a>
+            <a href="/">/</a>
+        </nav>
+    </main>
+</body>
+
+</html>
+
+
+
+================================================
+FILE: facts/jobs/edit.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/facts/jobs/edit</title>
+    <link rel="stylesheet" href="../..//shared.css">
+    <script src="../..//shared.js"></script>
+</head>
+
+<body>
+    <main>
+        <h1>/facts/jobs/edit</h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <input type="hidden" name="id" id="id">
+            <label for="title">Title</label>
+            <input type="text" name="title" id="title">
+            <label for="company">Company</label>
+            <input type="text" name="company" id="company">
+            <label for="from">From</label>
+            <input type="date" name="from" id="from">
+            <label for="to">To</label>
+            <input type="date" name="to" id="to">
+            <label>Achievements</label>
+            <textarea name="achievements" id="achievements" rows="5"></textarea>
+            <label for="active"><input type="checkbox" name="active" id="active"> I currently work there</label>
+            <br>
+            <button type="submit">Enter</button>
+        </form>
+        <script>
+            (function handleLoad() {
+                const params = new URLSearchParams(window.location.search);
+                
+                const id = params.get('id');
+                if (!id) return
+
+                const data = JSON.parse(localStorage.getItem(id))   
+                if (!data) return
+
+                const formElements = document.forms[0].elements
+                formElements.id.value = id
+                formElements.title.value = data.title
+                formElements.company.value = data.company
+                formElements.from.value = data.from
+                formElements.to.value = data.active ? '' : data.to
+                formElements.active.checked = data.active
+                formElements.achievements.value = data.achievements
+            })()
+     
+            function handleSubmit(event) {
+           
+                event.preventDefault();
+                const formElements = document.forms[0].elements
+                
+                const data = {
+                    title: formElements.title.value,
+                    company: formElements.company.value,
+                    from: formElements.from.value,
+                    to: formElements.active.checked ? '' : formElements.to.value,
+                    active: formElements.active.checked,
+                    achievements: formElements.achievements.value
+                }
+   
+                const id = formElements.id.value ? formElements.id.value : 'job_' + new Date().getTime()
+       
+                localStorage.setItem(id, JSON.stringify(data))
+                formElements.id.value = id 
+
+                flashSuccessMessage('Data saved!')
+            }
+        </script>
+        <br>
+        <nav class="auto-rows">
+            <a href="../jobs.html">/facts/jobs/</a>
+            <a href="../">/facts</a>
+            <a href="../../">/</a>
+
+        </nav>
+    </main>
+</body>
+
+</html>
+
+
+================================================
+FILE: facts/skills/edit.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/facts/skills/edit</title>
+    <link rel="stylesheet" href="../../shared.css">
+    <script src="../../shared.js"></script>
+</head>
+
+<body>
+    <main>
+        <h1>/facts/skills/edit</h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <input type="hidden" name="id" id="id">
+            <label for="skill">Skill</label>
+            <input type="text" name="skill" id="skill">
+            <label for="level">Level</label>
+            <input type="number" name="level" id="level">
+            <label for="category">Category</label>
+            <input type="text" name="category" id="category">
+            <br>
+            <button type="submit">Enter</button>
+        </form>
+        <script>
+            (function handleLoad() {
+                const params = new URLSearchParams(window.location.search);
+                
+                const id = params.get('id');
+                if (!id) return
+
+                const data = JSON.parse(localStorage.getItem(id))   
+                if (!data) return
+
+                const formElements = document.forms[0].elements
+                formElements.id.value = id
+                formElements.skill.value = data.skill
+                formElements.level.value = data.level
+                formElements.category.value = data.category
+
+            })()
+     
+            function handleSubmit(event) {
+           
+                event.preventDefault();
+                const formElements = document.forms[0].elements
+  
+                const data = {
+                    skill: formElements.skill.value,
+                    level: formElements.level.value,
+                    category: formElements.category.value
+                }
+   
+   
+                const id = formElements.id.value ? formElements.id.value : 'skill_' + new Date().getTime()
+         
+                localStorage.setItem(id, JSON.stringify(data))
+                formElements.id.value = id 
+                
+                flashSuccessMessage('Data saved!')
+            }
+        </script>
+        <br>
+        <nav class="auto-rows">
+            <a href="../skills.html">/facts/skills/</a>
+            <a href="../">/facts</a>
+            <a href="../../index.html">/</a>
+        </nav>
+    </main>
+</body>
+
+</html>
+
+
+================================================
+FILE: styles/edit.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/styles/edit</title>
+    <link rel="stylesheet" href="../shared.css">
+    <script src="../shared.js"></script>
+</head>
+
+<body>
+    <main>
+        <h1>/styles/edit</h1>
+        <hr>
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+            <input type="hidden" name="id" id="id">
+            <nav id="sections" class="auto-rows">
+
+
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" placeholder="Name">
+                <br>
+
+                <div class="section" data-category="layout">
+                    <input type="checkbox" id="layout" name="layout" value="layout" checked>
+                    <a data-section="layout" href="./layout/edit.html">/styles/layout</a>
+                </div>
+
+                <div class="section" data-category="fonts">
+                    <input type="checkbox" id="fonts" name="fonts" value="fonts" checked>
+                    <a data-section="fonts" href="./fonts/edit.html">/styles/fonts</a>
+                </div>
+
+                <div class="section" data-category="colors">
+                    <input type="checkbox" id="colors" name="colors" value="colors" checked>
+                    <a data-section="colors" href="./colors/edit.html">/styles/colors</a>
+                </div>
+
+                <div class="section" data-category="spacing">
+                    <input type="checkbox" id="spacing" name="spacing" value="spacing" checked>
+                    <a data-section="spacing" href="./spacing/edit.html">/styles/spacing</a>
+                </div>
+
+                <div class="section" data-category="borders">
+                    <input type="checkbox" id="borders" name="borders" value="borders" checked>
+                    <a data-section="borders" href="./borders/edit.html">/styles/borders</a>
+                </div>
+
+            </nav>
+            <button type="submit">Enter</button>
+        </form>
+        <script>
+            const sections = document.querySelectorAll('nav#sections .section')
+            function getDefaults() {
+                return status = JSON.parse(localStorage.getItem('styles')) ?? {
+                    layout: true,
+                    fonts: true,
+                    colors: true,
+                    spacing: true,
+                    borders: true
+                }
+            }
+
+            function createNew() {
+                const style = {}
+
+                const defaults = getDefaults()
+                const timestamp = new Date().getTime()
+                style.created = timestamp;
+                style.updated = timestamp;
+
+                console.log(sections)
+                sections.forEach(section => {
+                    const category = section.dataset.category
+                    console.log(category)
+                    style[category] = {
+                        active: defaults[category] ?? true
+                    }
+                    console.log(style[category])
+                })
+                const id = 'style_' + timestamp
+                localStorage.setItem(id, JSON.stringify(style))
+                return id
+            }
+
+            (function handleLoad() { // this or the other one is really buggy
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get('id')
+
+                if (!id) {
+                    window.location.replace(window.location.href + '?id=' + createNew())
+                }
+
+                const form = document.forms[0]
+                const formElements = form.elements
+                formElements.id.value = id
+
+                window.sections.querySelectorAll('input + a').forEach(link => {
+                    const category = link.dataset.section
+                    link.href += '?id=' + formElements.id.value
+                })
+
+                const data = JSON.parse(localStorage.getItem(formElements.id.value))
+                console.log(data)
+
+                const sections = document.querySelectorAll('nav#sections .section')
+                sections.forEach(section => {
+                    console.log(section)
+                    const category = section.dataset.category
+                    console.log(category)
+                    if (!data.hasOwnProperty(category)) {
+                        console.log('nope')
+                        return
+
+                    }
+                    section.querySelector('input').checked = data[category].active
+                })
+
+                formElements.name.value = data.name ?? ''
+
+            })()
+
+
+
+            function updatestyle() {
+                const formElements = document.forms[0].elements
+                const id = formElements.id.value
+                const data = JSON.parse(localStorage.getItem(id))
+
+                data.updated = new Date().getTime()
+                data.name = formElements.name.value
+                sections.forEach(section => {
+                    data[section.dataset.category].active = section.querySelector('input').checked
+                })
+
+                localStorage.setItem(id, JSON.stringify(data))
+
+                flashSuccessMessage('Data saved!')
+            }
+
+            function handleSubmit(event) { // this or the other one is really buggy
+
+                event.preventDefault();
+                updatestyle()
+
+            }
+        </script>
+        <br>
+        <nav class="auto-rows">
+            <a href="./">/styles</a>
+            <a href="../">/</a>
+        </nav>
+    </main>
+</body>
+
+</html>
+
+
+================================================
+FILE: styles/index.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>/styles</title>
+    <link rel="stylesheet" href="../shared.css">
+    <script src="../shared.js"></script>
+</head>
+
+<body>
+    <main>
+        <h1>/styles</h1>
+        <hr>
+        <nav class="auto-rows">
+            <a href="./edit.html">/style/new</a>
+        </nav>
+        <hr>
+        <template id="style">
+            <div class="style" style="display:flex; flex-direction: column;">
+                <a class="id" href="./edit.html" style="display: flex;">
+                    <span class="path"></span>
+                    <span class="file"></span>
+                </a>
+                <span class="name"></span>
+                <span class="created"></span>
+                <a href="../cvs/preview.html" class="preview" style="display: flex;">
+                    <span class="path"></span>
+                    <span class="file"></span>
+                </a>
+                <input type="button" value="Delete" class="delete" onclick="handleDelete(event)">
+
+            </div>
+        </template>
+        <output id="styles">
+
+        </output>
+        <hr>
+        <nav class="auto-rows">
+            <a href="../">/</a>
+        </nav>
+    </main>
+    <script>
+        const template = window.style
+        const handleDelete = (event) => {
+            const result = confirm('Are you sure you want to delete this style?')
+            if (!result) return
+            const id = event.target.dataset.id
+            localStorage.removeItem(id)
+            window.location.reload()
+        }
+
+        function addStyle(style, key) {
+            const clone = template.content.cloneNode(true)
+            clone.querySelector('a.id').href += '?id=' + key
+            clone.querySelector('a.id span.path').innerText = '/styles/'
+            clone.querySelector('a.id span.file').innerText = key
+
+            clone.querySelector('a.preview').href += '?style=' + key
+            clone.querySelector('a.preview span.path').innerText = '/cvs/'
+            clone.querySelector('a.preview span.file').innerText = key
+
+            clone.querySelector('span.name').innerText = `"${style.name ? style.name : 'Untitled'}"`
+            clone.querySelector('span.created').innerText = 'Added ' + timeAgo(style.created)
+
+            // tba
+            clone.querySelector('input.delete').dataset.id = key
+            return clone
+        }
+
+        (function loadstyles() {
+            const keys = Object.keys(localStorage).filter(key => key.startsWith('style_17'))
+            const defaultKey = 'style_default'
+            const defaultStyle = {
+                name: 'Default',
+                created: new Date().getTime(),
+                layout: { active: true },
+                fonts: { active: true },
+                colors: { active: true },
+                spacing: { active: true },
+                borders: { active: true },
+            }
+            const defaultExists = JSON.parse(localStorage.getItem(defaultKey))
+    
+            if (!defaultExists) {
+                localStorage.setItem(defaultKey, JSON.stringify(defaultStyle))
+            }
+            const defaultClone = addStyle(defaultExists ? defaultExists : defaultStyle, defaultKey)
+            window.styles.appendChild(defaultClone)
+            window.styles.appendChild(document.createElement('br'))
+
+            if (keys.length === 0) {
+                const p = document.createElement('p')
+                p.innerText = 'You did not add any styles yet.'
+                window.styles.appendChild(p)
+                return
+            }
+            keys.forEach(key => {
+                const style = JSON.parse(localStorage.getItem(key))
+           
+                const clone = addStyle(style, key)
+
+                window.styles.appendChild(clone)
+                window.styles.appendChild(document.createElement('br'))
+
+            })
+        })()
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: styles/fonts/edit.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>/styles/fonts/edit</title>
+    <link rel="stylesheet" href="../../shared.css">
+    <script src="../../shared.js"></script>
+
+</head>
+
+<body>
+    <main>
+        <h1>/styles/fonts/edit</h1>
+        <hr>
+
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+
+
+            <input type="hidden" name="id" id="id">
+
+            <template id="font" >
+                <details class="section" data-element="x" style="cursor: pointer; font-family: sans-serif;">
+                    <summary style="cursor: pointer; font-family: sans-serif; background-color: var(--color-primary); color: var(--color-secondary);  padding: 0.5em;">x</summary>
+                    <div style="display:flex; flex-direction: column; ">
+                        <label for="x-font-family">Font Family</label>
+                        <input type="text" id="x-font-family" class="font-family" name="x-font-family" placeholder="Font Family">
+                        <label for="x-font-size">Font Size</label>
+                        <input type="text" id="x-font-size" class="font-size" name="x-font-size" placeholder="Font Size">
+                        <label for="x-font-weight">Font Weight</label>
+                        <input type="text" id="x-font-weight" class="font-weight" name="x-font-weight" placeholder="Font Weight">
+                        <label for="x-line-height">Line Height</label>
+                        <input type="text" id="x-line-height" class="line-height" name="x-line-height" placeholder="Line Height">
+                    </div>
+
+                </details>
+            </template>
+
+            <output id="fonts"></output>
+
+
+
+            <button type="submit">Enter</button>
+        </form>
+
+        <br>
+        <nav class="auto-rows">
+            <a href="../edit.html" class="back">/styles/</a>
+            <a href="../">/styles</a>
+            <a href="../../">/</a>
+        </nav>
+    </main>
+
+    <script>
+   
+        const form = document.forms[0];
+       
+     
+
+
+        form.addEventListener('click', function (event) {
+            const target = event.target;
+            console.log(target);
+
+        });
+
+        function handleLoad() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            if (!id) return;
+
+            const formElements = form.elements;
+            formElements.id.value = id;
+
+            const elements = [ 'h1', 'h2', 'h3', 'p']
+            
+            const data = JSON.parse(localStorage.getItem(id));
+            if (!data) return;
+
+            const { fonts } = data;
+            console.log(fonts);
+           
+            const fontTemplate = window.font
+            console.log(fontTemplate);
+            elements.forEach(element=> {
+                const  fontClone = fontTemplate.content.cloneNode(true);
+              
+                const summary = fontClone.querySelector('summary');
+                summary.textContent = element;
+
+                const details = fontClone.querySelector('details');
+                details.dataset.element = element;
+
+                const fontFamily = fontClone.querySelector('input.font-family');
+                fontFamily.name = `${element}-font-family`;
+                fontFamily.placeholder = `${element} Font Family`;
+                fontFamily.value = fonts[`${element}-font-family`];
+
+                const fontSize = fontClone.querySelector('input.font-size');
+                fontSize.name = `${element}-font-size`;
+                fontSize.placeholder = `${element} Font Size`;
+                fontSize.value = fonts[`${element}-font-size`];
+
+                const fontWeight = fontClone.querySelector('input.font-weight');
+                fontWeight.name = `${element}-font-weight`;
+                fontWeight.placeholder = `${element} Font Weight`;
+                fontWeight.value = fonts[`${element}-font-weight`];
+
+                const lineHeight = fontClone.querySelector('input.line-height');
+                lineHeight.name = `${element}-line-height`;
+                lineHeight.placeholder = `${element} Line Height`;
+                lineHeight.value = fonts[`${element}-line-height`];
+
+                window.fonts.appendChild(fontClone);
+                window.fonts.appendChild(document.createElement('br'));
+            })
+
+
+       
+    
+            const back = document.querySelector('nav .back');
+            back.href = `/styles/edit.html?id=${id}`;
+            back.textContent = `/styles/${id}`;
+        }
+
+        // -----------------------------
+        //  FORM SUBMIT (SAVE LOGIC)
+        // -----------------------------
+        function handleSubmit(event) {
+            event.preventDefault();
+            const formElements = form.elements;
+            const id = formElements.id.value // if we land here without id, it's a bug, so we don't need to generate one
+
+            const style = JSON.parse(localStorage.getItem(id));
+            console.log(style);
+            const fonts = Object.fromEntries(new FormData(form));
+            fonts.active = true; // Why doe we need to do this here?
+            console.log(fonts);
+            delete fonts.id // the key is the id already in the style object
+            if (! style.hasOwnProperty('fonts')) style.fonts = {};
+
+            style.fonts = fonts;
+       
+            // const id = formElements.id.value ? formElements.id.value : 'job_' + new Date().getTime();
+            localStorage.setItem(id, JSON.stringify(style));
+
+
+            // Example function to show success
+            flashSuccessMessage('Data saved!');
+        }
+
+        // On page load, create one button per category
+        window.addEventListener('DOMContentLoaded', () => {
+
+            handleLoad();
+        });
+    </script>
+</body>
+
+</html>
+
+
+================================================
+FILE: styles/layout/edit.html
+================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>/styles/layout/edit</title>
+    <link rel="stylesheet" href="../../shared.css">
+    <script src="../../shared.js"></script>
+    <style>
+        /* Just some quick styling to see borders and highlights */
+        :root {
+            --radiant-one: var(--color-primary);
+            --radiant-two: var(--color-secondary);
+            --radiant-three: transparent;
+
+        }
+
+        .section {
+            cursor: pointer;
+        }
+
+        form.highlight div.unselected,
+        form.highlight fieldset.layout {
+            /* striped radiant css with repeat */
+            background: repeating-linear-gradient(45deg, transparent, transparent 10px, hotpink 10px, hotpink 20px);
+            /* ease in out*/
+            /** ease in out */
+            transition: all 2s ease-in-out 2s;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>/styles/layout/edit</h1>
+        <hr>
+
+        <form style="display: flex; flex-direction: column;" onsubmit="handleSubmit(event)">
+
+
+            <input type="hidden" name="id" id="id">
+
+            <!-- Buttons for adding new columns -->
+            <button type="button" id="addSingle" onclick="addSingleColumn(event)">Add single column</button>
+            <br>
+            <button type="button" id="addDouble" onclick="addDoubleColumn(event)">Add two columns</button>
+
+            <br>
+            <div id="categories" class="layout" data-layout="unselected">
+
+                <label for="personal" class="section">
+                    Personal
+                    <input type="hidden" id="personal" name="personal" value="unselected">
+                </label>
+                <label for="summary" class="section">
+                    Summary
+                    <input type="hidden" id="summary" name="summary" value="unselected">
+                </label>
+                <label for="skills" class="section">
+                    Skills
+                    <input type="hidden" id="skills" name="skills" value="unselected">
+                </label>
+                <label for="jobs" class="section">
+                    Experience
+                    <input type="hidden" id="jobs" name="jobs" value="unselected">
+                </label>
+                <label for="educations" class="section">
+                    Education
+                    <input type="hidden" id="educations" name="educations" value="unselected">
+                </label>
+                <label for="interests" class="section">
+                    Interests
+                    <input type="hidden" id="interests" name="interests" value="unselected">
+                </label>
+                <label for="projects" class="section">
+                    Projects
+                    <input type="hidden" id="projects" name="projects" value="unselected">
+                </label>
+                <label for="references" class="section">
+                    References
+                    <input type="hidden" id="references" name="references" value="unselected">
+                </label>
+                <label for="certifications" class="section">
+                    Certifications
+                    <input type="hidden" id="certifications" name="certifications" value="unselected">
+                </label>
+            </div>
+
+
+            <template id="single">
+                <fieldset class="layout" data-layout="single" data-id>
+                    <legend>single</legend>
+
+                </fieldset>
+            </template>
+
+            <template id="double">
+                <fieldset class="double" data-layout="double">
+                    <legend>double</legend>
+
+                    <fieldset class="layout left" data-id data-layout="left">
+                        <legend>left</legend>
+
+                    </fieldset>
+
+                    <fieldset class="layout right" data-id data-layout="right">
+                        <legend>right</legend>
+
+                    </fieldset>
+
+                </fieldset>
+            </template>
+
+
+            </div>
+            </output>
+
+
+            <button type="submit">Enter</button>
+        </form>
+
+        <br>
+        <nav class="auto-rows">
+            <a href="../edit.html" class="back">/styles/</a>
+            <a href="../">/styles</a>
+            <a href="../../">/</a>
+        </nav>
+    </main>
+
+    <script>
+        const validClasses = ['left', 'right', 'single', 'unselected'];
+        const form = document.forms[0];
+        let activeSection = null;
+
+        function addColumn(clone) {
+            const lastLayout = form.querySelectorAll('fieldset.layout').item(-1);
+            form.insertBefore(clone, lastLayout);
+
+            const fieldsets = form.querySelectorAll('fieldset.layout');
+            console.log(fieldsets);
+    
+            Object.entries(fieldsets).forEach(([key, fieldset]) => {
+                fieldset.dataset.id = key;
+            });
+        }
+
+        function addSingleColumn() {
+            addColumn(window.single.content.cloneNode(true));
+        }
+
+        function addDoubleColumn() {
+            addColumn(window.double.content.cloneNode(true));
+        }
+
+        function getActiveLayouts() {
+            const queryResult = form.querySelectorAll('fieldset.layout');
+            if (!queryResult) return [];
+
+            const activeFieldsets = (typeof queryResult !== 'NodeList') 
+                ? Array.from(queryResult)
+                : [queryResult];
+
+            const FieldsetsWithInputs = activeFieldsets.filter(f => f.querySelector('input'));
+   
+            return FieldsetsWithInputs.map(f => `${f.dataset.layout}${f.dataset.id}`);
+        }
+
+        form.addEventListener('click', function (event) {
+            const target = event.target;
+            if (target.classList.contains('section')) {
+
+                activeSection = target;
+                this.classList.add('highlight');
+            }
+
+            if (target.classList.contains('layout')) {
+                if (!activeSection) return;
+
+
+                const layoutType = target.dataset.layout;
+
+                if (!validClasses.includes(layoutType)) return;
+
+                if (target.contains(activeSection)) {
+                    const children = Array.from(target.children);
+                    const index = children.indexOf(activeSection);
+                    if (index === 0) return;
+                    target.insertBefore(activeSection, children[index - 1]);
+                } else {
+                    target.appendChild(activeSection);
+                    const input = activeSection.querySelector('input');
+                    input.value = (layoutType === 'unselected') ? 'unselected' : layoutType + target.dataset.id;
+                }
+
+                activeSection = null;
+                this.classList.remove('highlight');
+            }
+        });
+
+        function handleLoad() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            if (!id) return;
+
+            const data = JSON.parse(localStorage.getItem(id));
+            if (!data) return;
+
+            console.log(data);
+            const { layout } = data;
+
+            const formElements = form.elements;
+            formElements.id.value = id;
+
+            layout.sections.forEach (section => {
+                console.log(section)
+                if( section.includes('single')) {
+                    window.addSingle.click();
+
+                } 
+                if( section.includes('left')) {
+                    window.addDouble.click();
+                }
+            });
+
+            const inputs = form.querySelectorAll('input');
+            Object.values(inputs).forEach(input => {
+                if (input.id === 'id') return;  
+                const layoutID = layout[input.id];
+                const layoutType = validClasses.find(c => layoutID.includes(c));
+                if (!layoutType) return;
+                if (layoutType === 'unselected') return;
+                const layoutCounter = layout[input.id].split(layoutType)[1];
+       
+                const targetFieldset = form.querySelector(`fieldset[data-layout="${layoutType}"][data-id="${layoutCounter}"]`);
+                targetFieldset.appendChild(input.parentElement);
+                input.value = layout[input.id];
+            });
+            
+            const back = document.querySelector('nav .back');
+            back.href = `/styles/edit.html?id=${id}`;
+            back.textContent = `/styles/${id}`;
+        }
+
+        // -----------------------------
+        //  FORM SUBMIT (SAVE LOGIC)
+        // -----------------------------
+        function handleSubmit(event) {
+            event.preventDefault();
+            const formElements = form.elements;
+            const id = formElements.id.value // if we land here without id, it's a bug, so we don't need to generate one
+
+            const style = JSON.parse(localStorage.getItem(id));
+            console.log(style);
+            const layout = Object.fromEntries(new FormData(form));
+            console.log(layout);
+            delete layout.id // the key is the id already in the style object
+            layout.active = style.layout.active
+
+            style.layout = layout;
+            style.layout.sections = getActiveLayouts();
+            // const id = formElements.id.value ? formElements.id.value : 'job_' + new Date().getTime();
+            localStorage.setItem(id, JSON.stringify(style));
+
+
+            // Example function to show success
+            flashSuccessMessage('Data saved!');
+        }
+
+        // On page load, create one button per category
+        window.addEventListener('DOMContentLoaded', () => {
+
+            handleLoad();
+        });
+    </script>
+</body>
+
+</html>
+
