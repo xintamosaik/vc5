@@ -54,6 +54,32 @@
       }
     </style>
      <script>
+      function navigate(event) {
+        const target = event.target;
+        if (target.tagName !== "BUTTON") return;
+
+        const navigation = target.closest("nav");
+        if (!navigation) return;
+
+        const sectionName = navigation.dataset.section;
+        if (!sectionName) return;
+
+        const active = target.value;
+        if (!active) return;
+
+        const section = document.getElementById(sectionName);
+        if (!section) return;
+
+        const style = section.querySelector("style");
+        if (!style) return;
+
+        style.innerHTML = `
+          #${sectionName} > #${active} { display: flex; flex-direction: column; }
+          button[value="${active}"] { box-shadow: none; margin-top: 0.5ch; margin-left: 0.5ch; border-color: yellow;}
+        `;
+      }
+    </script>
+     <script>
       function getLocal(key) {
         if (!key) return;
         if (typeof key !== "string") return;
@@ -112,32 +138,7 @@
 
   <body style="margin: 0; border: 1px solid hotpink; min-height: 100vh">
     <main>
-      <script>
-        function navigate(event) {
-          const target = event.target;
-          if (target.tagName !== "BUTTON") return;
-
-          const navigation = target.closest("nav");
-          if (!navigation) return;
-
-          const sectionName = navigation.dataset.section;
-          if (!sectionName) return;
-
-          const active = target.value;
-          if (!active) return;
-
-          const section = document.getElementById(sectionName);
-          if (!section) return;
-
-          const style = section.querySelector("style");
-          if (!style) return;
-
-          style.innerHTML = `
-            #${sectionName} > #${active} { display: flex; flex-direction: column; }
-            button[value="${active}"] { box-shadow: none; margin-top: 0.5ch; margin-left: 0.5ch; border-color: yellow;}
-          `;
-        }
-      </script>
+     
       <section id="editor" class="active" style="border: 1px solid teal">
         <style id="editor-style">
           #facts {
