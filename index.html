@@ -9,18 +9,12 @@
       * {
         box-sizing: border-box;
       }
-      nav {
-        display: flex;
-        flex-direction: row;
-        gap: 1rem;
-        align-items: flex-start;
-      }
 
       body {
-        margin: 0; 
-        border: 1px solid hotpink; 
-        min-height: 100vh; 
-        display: grid; 
+        margin: 0;
+        border: 1px solid hotpink;
+        min-height: 100vh;
+        display: grid;
         grid-template-columns: 1fr;
       }
 
@@ -29,6 +23,13 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1rem;
+      }
+
+      nav {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        align-items: flex-start;
       }
 
       #preview,
@@ -57,7 +58,8 @@
         cursor: pointer;
       }
 
-      input, textarea {
+      input,
+      textarea {
         outline: none;
         border: none;
         border-bottom: 1px solid white;
@@ -67,10 +69,25 @@
       }
       textarea {
         resize: none;
+      }
 
+      dialog:open {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background-color: black;
+        color: white;
+        border: 1px solid white;
+        padding: 1rem;
+      }
+
+      dialog > form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
       }
     </style>
-     <script>
+    <script>
       function navigate(event) {
         const target = event.target;
         if (target.tagName !== "BUTTON") return;
@@ -97,7 +114,7 @@
         `;
       }
     </script>
-     <script>
+    <script>
       function getLocal(key) {
         if (!key) return;
         if (typeof key !== "string") return;
@@ -167,9 +184,8 @@
     </script>
   </head>
 
-  <body >
+  <body>
     <main>
-     
       <section id="editor" class="active" style="border: 1px solid teal">
         <style id="editor-style">
           #facts {
@@ -195,10 +211,10 @@
             <button value="summary">Summary</button>
             <button value="experience">Experience</button>
             <button value="education">Education</button>
- 
+
             <button value="skills">Skills</button>
           </nav>
-         
+
           <div
             id="personal"
             class="facts"
@@ -226,21 +242,153 @@
             <input type="tel" id="phone" name="phone" />
             <label for="website">Website</label>
             <input type="url" id="website" name="website" />
-      
+
             <label for="linkedin">LinkedIn</label>
             <input type="url" id="linkedin" name="linkedin" />
             <label for="github">GitHub</label>
             <input type="url" id="github" name="github" />
-
           </div>
-          <div id="summary" class="facts" data-autoload="true" hidden oninput="persist(event)">
+          <div
+            id="summary"
+            class="facts"
+            data-autoload="true"
+            hidden
+            oninput="persist(event)"
+          >
             <label for="title">Title</label>
             <input type="text" id="title" name="title" />
             <label for="summary">Summary</label>
-            <textarea id="summary" name="summary" rows="20" style="width:100%"></textarea>
+            <textarea
+              id="summary"
+              name="summary"
+              rows="20"
+              style="width: 100%"
+            ></textarea>
           </div>
-          <div id="skills" class="facts" hidden></div>
-          
+          <div id="skills" class="facts" hidden>
+            <script>
+              function editSkill(name) {
+                console.log({ name });
+                const skills = getLocal("skills");
+                const skill = skills.find((skill) => skill.name === name);
+                if (!skill) return;
+                const skillDialog = document.getElementById("new-skill");
+                skillDialog.showModal();
+                const nameInput = skillDialog.querySelector("#name");
+                const levelInput = skillDialog.querySelector("#level");
+                const categoryInput = skillDialog.querySelector("#category");
+                nameInput.value = skill.name;
+                levelInput.value = skill.level;
+                categoryInput.value = skill.category;
+              }
+              function deleteSkill(name) {
+                console.log({ name });
+                const skills = getLocal("skills");
+                const skill = skills.find((skill) => skill.name === name);
+                if (!skill) return;
+                const index = skills.indexOf(skill);
+                if (index === -1) return;
+                skills.splice(index, 1);
+                setLocal("skills", skills);
+                renderSkills();
+              }
+              function renderSkills() {
+                const skillList = document.getElementById("skill-list");
+                skillList.innerHTML = "";
+                const skills = getLocal("skills");
+                console.log({ skills });
+                if (!skills) return;
+
+                skills.forEach((skill) => {
+                  const skillDiv = document.createElement("div");
+                  skillDiv.innerHTML = `
+                  <div style="display: flex; gap: 1rem; justify-content: space-between; align-items: center">
+                    <h2>
+                      <span>${skill.name}</span>
+                      <span>(${skill.level})</span>
+                      <span>${skill.category}</span>
+                    </h2>
+                    <div>
+                    <button
+                      onclick="deleteSkill('${skill.name}')"
+                    
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onclick="editSkill('${skill.name}')"
+                    
+                    >
+                      Edit
+                    </button>
+                    </div>
+                  </div>
+                  `;
+                  skillList.appendChild(skillDiv);
+                });
+              }
+            </script>
+            <h1>Skills</h1>
+            <dialog id="new-skill">
+              <form method="dialog">
+                <label for="skill">Skill</label>
+                <input type="text" id="name" name="name" required />
+                <label for="name">Level</label>
+                <input type="text" id="level" name="level" />
+                <label for="category">Category</label>
+                <input type="text" id="category" name="category" />
+                <button type="submit">Add</button>
+              </form>
+              <button
+                id="close"
+                onclick="document.getElementById('new-skill').close()"
+              >
+                Close
+              </button>
+              <script>
+                const skillDialog = document.getElementById("new-skill");
+                skillDialog.addEventListener("close", (event) => {
+                  const form = event.target.querySelector("form");
+                  if (!form) return;
+                  const formData = new FormData(form);
+                  const name = formData.get("name");
+                  const level = formData.get("level");
+                  const category = formData.get("category");
+
+                  if (!name) return;
+
+                  const currentSkills = getLocal("skills");
+                  if (!currentSkills) {
+                    setLocal("skills", [{ name, level, category }]);
+                  } else {
+                    const skill = currentSkills.find(
+                      (skill) => skill.name === name
+                    );
+                    if (skill) {
+                      skill.level = level;
+                      skill.category = category;
+                    } else {
+                      currentSkills.push({ name, level, category });
+                    }
+                    setLocal("skills", currentSkills);
+                  }
+                  renderSkills();
+                });
+              </script>
+            </dialog>
+            <button
+              id="add-skill"
+              onclick="document.getElementById('new-skill').showModal()"
+            >
+              Add Skill
+            </button>
+
+            <div id="skill-list"></div>
+            <script>
+              renderSkills();
+            </script>
+          </div>
+
           <div id="experience" class="facts" hidden></div>
           <div id="education" class="facts" hidden></div>
         </div>
@@ -256,11 +404,10 @@
         factsButton.click();
       }
       // click the personal button
-      const personalButton = document.querySelector('button[value="personal"]');
+      const personalButton = document.querySelector('button[value="skills"]');
       if (personalButton) {
         personalButton.click();
       }
-
 
       document.addEventListener("DOMContentLoaded", () => {
         const toAutoload = document.querySelectorAll("[data-autoload]");
