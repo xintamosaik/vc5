@@ -32,7 +32,6 @@
       }
 
       #editor > div {
-
         flex-direction: column;
         gap: 1rem;
       }
@@ -54,6 +53,61 @@
         padding: 0.5rem 1rem;
       }
     </style>
+     <script>
+      function getLocal(key) {
+        if (!key) return;
+        if (typeof key !== "string") return;
+        const localStorageKey = key;
+        const oldValue = localStorage.getItem(localStorageKey);
+        console.log({ oldValue });
+        const deserilalized = JSON.parse(oldValue);
+        console.log({ deserilalized });
+        return deserilalized;
+      }
+      function setLocal(key, value) {
+        if (!key) return;
+        if (typeof key !== "string") return;
+        if (!value) return;
+        if (typeof value !== "object") return;
+
+        const localStorageKey = key;
+        const serialized = JSON.stringify(value);
+        console.log({ serialized });
+        localStorage.setItem(localStorageKey, serialized);
+        console.log({ localStorage });
+      }
+      function persist(event) {
+        const container = event.currentTarget;
+        if (!container) return;
+        console.log({ container });
+        const target = event.target;
+        if (target.tagName !== "INPUT") return;
+        console.log({ target });
+        const name = target.name;
+        if (!name) return;
+        console.log({ name });
+        const value = target.value;
+        if (!value) return;
+        console.log({ value });
+
+        const localStorageKey = container.id;
+        if (!localStorageKey) return;
+        console.log({ localStorageKey });
+
+        const deserilalized = getLocal(localStorageKey);
+        console.log({ deserilalized });
+        if (!deserilalized) {
+          setLocal(localStorageKey, { [name]: value });
+          return;
+        }
+
+        deserilalized[name] = value;
+        console.log({ deserilalized });
+        setLocal(localStorageKey, deserilalized);
+        const localStorageValue = getLocal(localStorageKey);
+        console.log({ localStorageValue });
+      }
+    </script>
   </head>
 
   <body style="margin: 0; border: 1px solid hotpink; min-height: 100vh">
@@ -92,7 +146,7 @@
           }
         </style>
 
-        <nav data-section="editor" onclick="navigate(event)" >
+        <nav data-section="editor" onclick="navigate(event)">
           <button value="cvs">CVs</button>
           <button value="facts">Facts</button>
           <button value="styles">Styles</button>
@@ -111,67 +165,10 @@
             <button value="experience">Experience</button>
             <button value="skills">Skills</button>
           </nav>
-          <script>
-            function getLocal(key) {
-              if (!key) return;
-              if (typeof key !== "string") return;
-              const localStorageKey = key;
-              const oldValue = localStorage.getItem(localStorageKey);
-              console.log({ oldValue });
-              const deserilalized = JSON.parse(oldValue);
-              console.log({ deserilalized });
-              return deserilalized;
-            }
-            function setLocal(key, value) {
-              if (!key) return;
-              if (typeof key !== "string") return;
-              if (!value) return;
-              if (typeof value !== "object") return;
-              if (Array.isArray(value)) return;
-              if (value instanceof Date) return;
-              const localStorageKey = key;
-              const serialized = JSON.stringify(value);
-              console.log({ serialized });
-              localStorage.setItem(localStorageKey, serialized);
-              console.log({ localStorage });
-            }
-            function persist(event) {
          
-              const container = event.currentTarget;
-              if (!container) return;
-              console.log({ container });
-              const target = event.target;
-              if (target.tagName !== "INPUT") return;
-              console.log({ target });
-              const name = target.name;
-              if (!name) return;
-              console.log({ name });
-              const value = target.value;
-              if (!value) return;
-              console.log({ value });
-
-              const localStorageKey = container.id;
-              if (!localStorageKey) return;
-              console.log({ localStorageKey });
-
-              const deserilalized = getLocal(localStorageKey);
-              console.log({ deserilalized });
-              if (!deserilalized) {
-                setLocal(localStorageKey, { [name]: value });
-                return;
-              }
-
-              deserilalized[name] = value;
-              console.log({ deserilalized });
-              setLocal(localStorageKey, deserilalized);
-              const localStorageValue = getLocal(localStorageKey);
-              console.log({ localStorageValue });
-            }
-          </script>
           <div
             id="personal"
             class="facts"
-      
             data-autoload="true"
             hidden
             onchange="persist(event)"
@@ -186,7 +183,6 @@
           <div
             id="contact"
             class="facts"
-        
             data-autoload="true"
             hidden
             onchange="persist(event)"
@@ -236,7 +232,6 @@
         const toAutoload = document.querySelectorAll("[data-autoload]");
         toAutoload.forEach((element) => {
           if (element.dataset.autoload === "true") {
-     
             autoload(element);
           }
         });
