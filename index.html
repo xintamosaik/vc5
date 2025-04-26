@@ -193,8 +193,9 @@
             <button value="personal">Personal</button>
             <button value="contact">Contact</button>
             <button value="summary">Summary</button>
-            <button value="education">Education</button>
             <button value="experience">Experience</button>
+            <button value="education">Education</button>
+ 
             <button value="skills">Skills</button>
           </nav>
          
@@ -225,6 +226,12 @@
             <input type="tel" id="phone" name="phone" />
             <label for="website">Website</label>
             <input type="url" id="website" name="website" />
+      
+            <label for="linkedin">LinkedIn</label>
+            <input type="url" id="linkedin" name="linkedin" />
+            <label for="github">GitHub</label>
+            <input type="url" id="github" name="github" />
+
           </div>
           <div id="summary" class="facts" data-autoload="true" hidden oninput="persist(event)">
             <label for="title">Title</label>
@@ -232,9 +239,10 @@
             <label for="summary">Summary</label>
             <textarea id="summary" name="summary" rows="20" style="width:100%"></textarea>
           </div>
-          <div id="education" class="facts" hidden></div>
-          <div id="experience" class="facts" hidden></div>
           <div id="skills" class="facts" hidden></div>
+          
+          <div id="experience" class="facts" hidden></div>
+          <div id="education" class="facts" hidden></div>
         </div>
         <div id="styles" class="editor" hidden></div>
         <div id="settings" class="editor" hidden></div>
