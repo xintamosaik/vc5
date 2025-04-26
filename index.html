@@ -16,6 +16,14 @@
         align-items: flex-start;
       }
 
+      body {
+        margin: 0; 
+        border: 1px solid hotpink; 
+        min-height: 100vh; 
+        display: grid; 
+        grid-template-columns: 1fr;
+      }
+
       main {
         padding: 1rem;
         display: grid;
@@ -49,13 +57,17 @@
         cursor: pointer;
       }
 
-      input {
+      input, textarea {
         outline: none;
         border: none;
         border-bottom: 1px solid white;
         background-color: black;
         color: white;
         padding: 0.5rem 1rem;
+      }
+      textarea {
+        resize: none;
+
       }
     </style>
      <script>
@@ -113,7 +125,7 @@
         if (!container) return;
         console.log({ container });
         const target = event.target;
-        if (target.tagName !== "INPUT") return;
+        if (target.tagName !== "INPUT" && target.tagName !== "TEXTAREA") return;
         console.log({ target });
         const name = target.name;
         if (!name) return;
@@ -139,10 +151,23 @@
         const localStorageValue = getLocal(localStorageKey);
         console.log({ localStorageValue });
       }
+
+      function autoload(container) {
+        if (!container) return;
+
+        const deserilalized = getLocal(container.id);
+        if (!deserilalized) return;
+
+        for (const [key, value] of Object.entries(deserilalized)) {
+          const input = container.querySelector(`[name="${key}"]`);
+          if (!input) continue;
+          input.value = value;
+        }
+      }
     </script>
   </head>
 
-  <body style="margin: 0; border: 1px solid hotpink; min-height: 100vh">
+  <body >
     <main>
      
       <section id="editor" class="active" style="border: 1px solid teal">
@@ -178,7 +203,7 @@
             class="facts"
             data-autoload="true"
             hidden
-            onchange="persist(event)"
+            oninput="persist(event)"
           >
             <label for="first">First Name</label>
             <input type="text" id="first" name="first" />
@@ -192,7 +217,7 @@
             class="facts"
             data-autoload="true"
             hidden
-            onchange="persist(event)"
+            oninput="persist(event)"
           >
             <label for="email">Email</label>
             <input type="email" id="email" name="email" />
@@ -201,7 +226,12 @@
             <label for="website">Website</label>
             <input type="url" id="website" name="website" />
           </div>
-          <div id="summary" class="facts" hidden></div>
+          <div id="summary" class="facts" data-autoload="true" hidden oninput="persist(event)">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" />
+            <label for="summary">Summary</label>
+            <textarea id="summary" name="summary" rows="20" style="width:100%"></textarea>
+          </div>
           <div id="education" class="facts" hidden></div>
           <div id="experience" class="facts" hidden></div>
           <div id="skills" class="facts" hidden></div>
@@ -223,18 +253,7 @@
         personalButton.click();
       }
 
-      function autoload(container) {
-        if (!container) return;
 
-        const deserilalized = getLocal(container.id);
-        if (!deserilalized) return;
-
-        for (const [key, value] of Object.entries(deserilalized)) {
-          const input = container.querySelector(`input[name="${key}"]`);
-          if (!input) continue;
-          input.value = value;
-        }
-      }
       document.addEventListener("DOMContentLoaded", () => {
         const toAutoload = document.querySelectorAll("[data-autoload]");
         toAutoload.forEach((element) => {
